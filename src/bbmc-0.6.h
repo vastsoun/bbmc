@@ -1,12 +1,12 @@
 /**
- * \file   bbmc-0.5.h
+ * \file   bbmc-0.6.h
  *
- * \brief  the bbmc-0.5.x application header
+ * \brief  the bbmc-0.6.x application header
  */
  
 
-#ifndef _BBMC_0_5_H_
-#define _BBMC_0_5_H_
+#ifndef _BBMC_0_6_H_
+#define _BBMC_0_6_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -780,4 +780,4 @@ systick_t;
 #ifdef __cplusplus
 }
 #endif
-#endif  /* _BBMC_0_5_H_ */
+#endif  /* _BBMC_0_6_H_ */

@@ -1,4 +1,7 @@
 temp/*
 resources/*
+build/Release
+build/Debug
+build/bin
 
 *.geany

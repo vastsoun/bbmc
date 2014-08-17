@@ -1,5 +1,5 @@
 /**
- *  \file   bbmc-0.5.c
+ *  \file   bbmc-0.6.c
  *
  *  \brief  BBMC (Beagle Bone Motor Control) firmware package for Vassilis Tsounis' 
  *           diploma thesis at CSL-EP NTUA.
@@ -60,7 +60,7 @@ static char *g_bbmc_greeting = "\r\n"
 /* Utilities */
 #include "perf.h"
 #include "cmdline.h"
-#include "bbmc-0.5.h"
+#include "bbmc-0.6.h"
 
 
 
