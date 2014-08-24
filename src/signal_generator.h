@@ -269,6 +269,50 @@ sg_circle_t;
 
 
 
+/**
+ * 
+ * 
+ */
+
+int signalgen_prbs_v0 (datalog_s_t *datalog, int data_index);
+
+int signalgen_prbs_v1 (datalog_s_t *datalog, int *prbs_table, 
+                                    int duration, int idle_time, int data_index);
+int 
+signalgen_prbs_v2 (datalog_s_t *datalog, 
+                   int *prbs_table, 
+                   int duration, 
+                   int idle_time, 
+                   int data_index);
+
+int 
+signalgen_pulse_v1 (datalog_s_t *datalog, 
+                   int *pulse_table, 
+                   int duration, 
+                   int on_time,
+                   int off_time,
+                   int idle_time,
+                   int data_index);
+
+inline double signalgen_sine_generic (unsigned int index, sg_sine_t *parameters);
+
+inline double signalgen_cosine_generic (unsigned int index, sg_sine_t *parameters);
+
+int signalgen_circle_generic_setup (sg_circle_t *circle);
+
+inline void signalgen_circle_poscontrl_online (sg_circle_t *circle,
+                                                csl_carriage_t *inv_kinematics);
+
+inline void signalgen_circle_speedcontrl_online (unsigned int counter, sg_circle_t *circle);
+
+inline void signalgen_circle_trajectcontrl_online (sg_circle_t *circle,
+                                                    csl_carriage_t *inv_kinematics);
+
+inline void signalgen_trapezoid_speedcontrl_online (sg_trapez_t *trapez,
+                                                      csl_carriage_t *inv_kinematics);
+
+inline void signalgen_trapezoid_trajectcontrl_online (sg_trapez_t *trapez,
+                                                        csl_carriage_t *inv_kinematics);
 
 
 

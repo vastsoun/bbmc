@@ -1,8 +1,13 @@
+/** Library Header **/
 #include "utils.h"
 
-
 /** Std C Headers **/
-
+#include <string.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <ctype.h>
+#include <math.h>
+#include <float.h>
 
 
 

@@ -7,61 +7,27 @@
 #endif
 
 
-
-/**
- * 
- */
-#define DATALOG_STATIC_DATALEN          (GLOBAL_DATA_MAX)
-#define DATALOG_STATIC_DATASIZE         (6)
+/** BBMC Headers **/
+//TODO
 
 
-
-/**
- * 
- */
-typedef double data_t;
-
-
-/**
- * 
- */
-typedef struct
-{
-    data_t data[DATALOG_STATIC_DATASIZE];
-}
-dataset_s_t;
-
-
-/**
- * 
- */
-typedef struct
-{
-    dataset_s_t log[DATALOG_STATIC_DATALEN];
-    
-    int d_size;
-    int l_size;
-    
-    int d_index;
-    int l_index;
-}
-datalog_s_t;
-
-
-/**
+/** Datalog functions
  * 
  */
 
-int datalog_s_setup (datalog_s_t volatile *datalog_ptr);
+int datalog_s_setup (void);
 
-int datalog_s_init (datalog_s_t volatile *datalog_ptr, data_t init_val);
+int datalog_s_init  (data_t init_val);
 
-int datalog_s_print (datalog_s_t volatile *datalog_ptr, int range_indeces[4]);
+int datalog_s_single_write (unsigned int log_index,
+                            unsigned int datum_index,
+                            data_t number);
 
-void datalog_write (unsigned int index,
-                           datalog_s_t volatile *datalog, 
-                           bbmc_dof_state_t volatile *state,
-                           bbmc_dof_contrl_t volatile *contrl);
+void datalog_s_write (unsigned int index,
+                      bbmc_input_encoder_t volatile *state,
+                      bbmc_output_motor_t  volatile *contrl);
+
+int datalog_s_print (int range_indeces[4]);
 
 
 

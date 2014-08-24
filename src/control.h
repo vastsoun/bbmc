@@ -28,15 +28,6 @@
  */
 typedef struct 
 {
-    double  q;
-    double  q_dot;
-    double  q_ddot;
-}
-jointspace_state_t;
-
-
-typedef struct 
-{
     double  x;
     double  x_dot;
     double  x_ddot;
