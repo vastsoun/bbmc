@@ -2,10 +2,19 @@
 #include "isr_manager.h"
 
 /** Std C Headers **/
+#include <stdlib.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
+
+/** Firmware Headers **/
+#include "uartStdio.h"
 
 /** BBMC Headers **/
 #include "device_layer.h"
 #include "system_layer.h"
+#include "util.h"
+
 
 
 
@@ -15,10 +24,10 @@
 extern void isr_experiment (void);
 extern void isr_goto (void);
 extern void isr_rmpi (void);
-extern void isr_systick (void);
 
-extern void isr_gpio_killswitch(void);
-extern void isr_gpio_pos_limit(void);
+extern void isr_gpio_killswitch (void);
+extern void isr_gpio_poslim (void);
+extern void isr_systick (void);
 
 
 
@@ -28,9 +37,10 @@ extern void isr_gpio_pos_limit(void);
 
 typedef struct
 {
-    unsigned int termination_flag;
     unsigned int iteration_counter;
+    unsigned int termination_flag;
     unsigned int termination_counter;
+    unsigned int termination_return;
 }
 isr_state_t;
 
@@ -48,7 +58,7 @@ static isr_fp_t    const      g_isr_funcs[5] =
                                                     isr_rmpi,
                                                     isr_systick,
                                                     isr_gpio_killswitch,
-                                                    isr_gpio_pos_limit,
+                                                    isr_gpio_poslim,
                                                 };
 
 
@@ -60,29 +70,35 @@ static isr_fp_t    const      g_isr_funcs[5] =
 int 
 isr_state_init (void)
 {
-    g_isr_state.termination_flag = 0;
     g_isr_state.iteration_counter = 0;
+    g_isr_state.termination_flag = 0;
     g_isr_state.termination_counter = 0;
+    g_isr_state.termination_return = 0;
     
     return 0;
 }
 
 int 
-isr_state_set (isr_state_field set_mode, int set_val)
+isr_state_set (isr_state set_mode, int set_val)
 {
-    if(set_mode == TERM_COUNT)
+    if (set_mode == ITER_COUNT)
+    {
+        g_isr_state.iteration_counter = set_val;
+    }
+    
+    else if (set_mode == TERM_COUNT)
     {
         g_isr_state.termination_counter = set_val;
     }
     
-    else if(set_mode == TERM_FLAG)
+    else if (set_mode == TERM_FLAG)
     {
         g_isr_state.termination_flag = set_val;
     }
     
-    else if(set_mode == ITER_COUNT)
+    else if (set_mode == TERM_RET)
     {
-        g_isr_state.iteration_counter = set_val;
+        g_isr_state.termination_return = set_val;
     }
     
     else
@@ -95,23 +111,28 @@ isr_state_set (isr_state_field set_mode, int set_val)
 }
 
 int 
-isr_state_get (isr_state_field get_mode)
+isr_state_get (isr_state get_mode)
 {
-    int ret_val = 0;
+    unsigned int ret_val = 0;
     
-    if(set_mode == TERM_COUNT)
+    if (set_mode == ITER_COUNT)
+    {
+        ret_val = g_isr_state.iteration_counter;
+    }
+    
+    else if (set_mode == TERM_COUNT)
     {
         ret_val = g_isr_state.termination_counter;
     }
     
-    else if(set_mode == TERM_FLAG)
+    else if (set_mode == TERM_FLAG)
     {
         ret_val = g_isr_state.termination_flag;
     }
     
-    else if(set_mode == ITER_COUNT)
+    else if (set_mode == TERM_RET)
     {
-        ret_val = g_isr_state.iteration_counter;
+        ret_val = g_isr_state.termination_return;
     }
     
     else
@@ -120,7 +141,7 @@ isr_state_get (isr_state_field get_mode)
         return -1;
     }
     
-    return ret_val;
+    return (int)ret_val;
 }
 
 int 
@@ -132,13 +153,12 @@ isr_state_print (const char* format)
         return -1;
     }
     
-    UARTprintf("\r\n%sController State is:\r\n", format);
+    UARTprintf("\r\n%sISR State is:\r\n", format);
     
-    UARTprintf("\r\n%siteration counter is at:    %d", format, contrl_state->iteration_counter);
-    UARTprintf("\r\n%stermination counter is at:  %d", format, contrl_state->termination_counter);
-    UARTprintf("\r\n%stermination flag is :       %d", format, contrl_state->termination_flag);
-    
-    bbmc_cli_newlin(2);
+    UARTprintf("\r\n%siteration counter is   :  %d", format, contrl_state->iteration_counter);
+    UARTprintf("\r\n%stermination counter is :  %d", format, contrl_state->termination_counter);
+    UARTprintf("\r\n%stermination flag is    :  %d", format, contrl_state->termination_flag);
+    UARTprintf("\r\n%stermination return is  :  %d", format, contrl_state->termination_return);
     
     return 0;
 }
@@ -167,7 +187,7 @@ isr_function_setup(void)
 }
 
 
-/** ISR return value configurer
+/** ISR return value tester
  * 
  */
 
@@ -180,7 +200,7 @@ isr_return_value(unsigned int cmnd_ret, int ret)
         return (RETURN_SUCCESS);
     }
     
-    else if (ret == (cmnd_ret + ISR_RETURN_GPIO_LIM))
+    else if (ret == (cmnd_ret + ISR_RETURN_POSLIM))
     {
         UARTPuts("\r\nWARNING: Controller has been terminated by position limit.\r\n", -1);
         return (RETURN_ERROR_GPIO_LIM);

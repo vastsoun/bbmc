@@ -1,5 +1,5 @@
-#ifndef _SYSTEM_LAYER_H_
-#define _SYSTEM_LAYER_H_
+#ifndef _SYSTEM_TIMERS_H_
+#define _SYSTEM_TIMERS_H_
 
 
 #ifdef __cplusplus
@@ -8,12 +8,14 @@
 
 
 
-/** 
- *  
+/** Library Dependencies **/
+#include "device_layer.h"
+
+
+
+/** Definition of the System Timers
  *  
  */
-
-
 
 #define TIMER_EXP                       (TIMER_1)
 #define TIMER_GOTO                      (TIMER_2)
@@ -27,30 +29,19 @@
 
 
 
-
-
-
-
-
-
-
-
-/** System Flag handler functions
- *  
+/** System Timer Functions
+ * 
  */
-int sys_flags_clear  (const char *init_mode);
 
-int sys_flags_print (const char *format);
+int timer_enable  (unsigned int timer);
 
-int sys_flags_set (const char *init_mode);
-                             
-int sys_flags_get (const char *flag);
+int timer_disable (unsigned int timer);
 
-int sys_flags_gpreset_set (int dof_id, int set_val);
-                                     
-int sys_flags_gpreset_get (int dof_id);
+int timer_frequency_get (unsigned int timer, unsigned int *frequency);
 
+int timer_frequency_set (unsigned int timer, double frequency);
 
+int timer_print (const char *format);
 
 
 
@@ -60,4 +51,4 @@ int sys_flags_gpreset_get (int dof_id);
 #endif
 
 
-#endif /* _SYSTEM_LAYER_H_ */
+#endif /* _SYSTEM_TIMERS_H_ */

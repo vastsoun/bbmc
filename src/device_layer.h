@@ -30,6 +30,12 @@
 /** BBMC HARDWARE MACROS
  * 
  */
+
+#define BBMC_DOF_NUM                    2
+#define GLOBAL_DATA_MAX                 (131072)
+#define CONTROLLER_ITERATIONS_MAX       (GLOBAL_DATA_MAX)
+
+
 #define TIMER_1_ID                      2
 #define TIMER_2_ID                      3
 #define TIMER_3_ID                      4
@@ -148,11 +154,19 @@ int dev_pwm_disable (unsigned int dev_id);
  */
 int dev_qei_setup (void);
 
-int dev_qei_capture (unsigned int dev_id,
-                     unsigned int unit_position,
-                     unsigned int clk_prescaler);
+int dev_qei_data_init  (dev_input_qei_t volatile *state);
 
-int dev_qei_data_init (bbmc_input_encoder_t volatile *state);
+int dev_qei_data_cpy   (dev_input_qei_t volatile *src,
+                        dev_input_qei_t volatile *dest);
+
+int dev_qei_cap_config (unsigned int dev_id,
+                        unsigned int unit_position,
+                        unsigned int clk_prescaler);
+
+int dev_qei_count_set  (dev_input_qei_t volatile *state, unsigned int count);
+
+int dev_qei_frequency_set (dev_input_qei_t volatile *data, 
+                           unsigned int frequency);
 
 
 /** System and Controller Timers 
@@ -160,9 +174,9 @@ int dev_qei_data_init (bbmc_input_encoder_t volatile *state);
  */
 int dev_timer_setup (void);
 
-int dev_timer_frequency_set (unsigned int timer, unsigned int count);
+int dev_timer_frequency_get (unsigned int timer, unsigned int *frequency);
 
-int dev_timer_frequency_get (unsigned int timer, int *frequency);
+int dev_timer_frequency_set (unsigned int timer, unsigned int count);
 
 int dev_timer_1_enable  (void);
 

@@ -24,13 +24,11 @@ main(void)
     
     bbmc_setup();
     
-    bbmc_greeting();
-
-    bbmc_sysflags_clear (&g_flags, "-all");
+    greeting();
     
-    CommandLine();
+    command_line();
     
-    bbmc_system_halt();
+    bbmc_halt ();
     
     return 0;
 }

@@ -161,7 +161,8 @@ dev_pwm_disable (unsigned int dev_id)
 /** Encoder Input Subsystem 
  *  
  */
- 
+
+//TODO
 int 
 dev_qei_setup (void)
 {
@@ -177,24 +178,40 @@ dev_qei_setup (void)
     eqep_1_pinmux_setup();
     eqep_2_pinmux_setup();
     
-    eqep_data_init(&(g_dof_state[0].state));//TODO
-    eqep_data_init(&(g_dof_state[1].state));//TODO
-    
     return 0;
 }
 
 int 
-dev_qei_capture (unsigned int dev_id,
-                 unsigned int unit_position,
-                 unsigned int clk_prescaler)
+dev_qei_data_init (dev_input_qei_t volatile *state)
 {
-    return eqep_caputure_config(dev_id, unit_position, clk_prescaler);
+    return eqep_data_init (&(state->input));
+}
+
+int dev_qei_data_cpy  (dev_input_qei_t volatile *src,
+                       dev_input_qei_t volatile *dest)
+{
+    return eqep_data_copy (&(src->input), &(src->input));
 }
 
 int 
-dev_qei_data_init (bbmc_input_encoder_t volatile *state)
+dev_qei_cap_config (unsigned int dev_id,
+                    unsigned int unit_position,
+                    unsigned int clk_prescaler)
 {
-    return eqep_data_init(&(state->state));
+    return eqep_caputure_config (dev_id, unit_position, clk_prescaler);
+}
+
+int dev_qei_count_set  (dev_input_qei_t volatile *state, unsigned int count)
+{
+    return eqep_write (state->dev_id, count);
+}
+
+int 
+dev_qei_frequency_set (dev_input_qei_t volatile *data, unsigned int frequency)
+{
+    data->input.sampling_freq = frequency;
+    
+    return 0;
 }
 
 
@@ -223,33 +240,13 @@ dev_timer_setup (void)
     return 0;
 }
 
-/*int 
-dev_timer_frequency_set (unsigned int timer, float frequency)
-{
-    if (frequency < 0)
-    {
-        return -1;
-    }
-    
-    float temp;
-    
-    temp = frequency;
-    temp = DMTIMER_SYSTEM_CLK_DEFAULT/temp;
-    temp = DMTIMER_COUNT_MAX - temp;
-    
-    return dmtimer_tldr_config_set(timer, (unsigned int)temp);
-}*/
-
 int 
-dev_timer_frequency_set (unsigned int timer, unsigned int count)
+dev_timer_frequency_get (unsigned int timer, unsigned int *frequency)
 {
-    return dmtimer_tldr_config_set(timer, count);
-}
-
-int 
-dev_timer_frequency_get (unsigned int timer, int *frequency)
-{
-    if (*frequency < 0)
+    if ((timer != TIMER_1) || 
+        (timer != TIMER_2) ||
+        (timer != TIMER_3) ||
+        (timer != TIMER_4) )
     {
         return -1;
     }
@@ -265,6 +262,20 @@ dev_timer_frequency_get (unsigned int timer, int *frequency)
     *frequency = freq;
     
     return 0;
+}
+
+int 
+dev_timer_frequency_set (unsigned int timer, unsigned int count)
+{
+    if ((timer != TIMER_1) || 
+        (timer != TIMER_2) ||
+        (timer != TIMER_3) ||
+        (timer != TIMER_4) )
+    {
+        return -1;
+    }
+    
+    return dmtimer_tldr_config_set(timer, count);
 }
 
 int
@@ -510,7 +521,7 @@ dev_intc_setup (isr_fp_t *isr_funcs)
     IntRegister(SYS_INT_TINT3, isr_funcs[1]);
     IntRegister(SYS_INT_TINT4, isr_funcs[2]);
     IntRegister(SYS_INT_TINT5, isr_funcs[3]);//isr_systick
-    IntRegister(SYS_INT_GPIOINT1A , isr_funcs[4]);//isr_gpio_pos_limit
+    IntRegister(SYS_INT_GPIOINT1A , isr_funcs[4]);//isr_gpio_poslim
     IntRegister(SYS_INT_GPIOINT1B , isr_funcs[5]);//isr_gpio_killswitch
     
     /* Set priority for each ISR */

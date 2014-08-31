@@ -1,45 +1,563 @@
+/** Module Header **/
+#include "bbmc_facilities.h"
+
+/** Std C Headers **/
+#include <stdlib.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
+#include <math.h>
+
+/** Firmware Headers **/
+#include "uartStdio.h"
+
+/** BBMC Headers **/
+#include "device_layer.h"
+#include "timers_manager.h"
+#include "isr_manager.h"
+#include "safety_ss.h"
+
+#include "motion_control.h"
+#include "global_state.h"
+#include "global_flags.h"
+
+#include "datalog.h"
+//#include "signal_generator.h"
+
+//#include "uretts_model.h"
+//#include "uretts_control.h"
+
+#include "util.h"
 
 
-//TODO
-typedef struct
+/** Internal Data Types
+ * 
+ */
+
+
+
+
+/** Internal Data 
+ * 
+ */
+
+
+
+
+/** Internal Functions 
+ * 
+ */
+
+
+
+
+/** TEST
+ *  
+ */
+
+int test (int argc, char *argv[])
 {
-    double        arg_double[4];
-    int            arg_int[4];
-    unsigned int  arg_uint[4];
+    UARTPuts("\r\n This is BBMC/Test\r\n", -1);
+    //TODO
+    
+    return 0;
 }
-bbmc_cmd_args_t;
 
-
-/* systick timer data */ 
-static volatile int                 timer_ticks   = 0;
-static volatile int                 timer_ticking = 0;
-
-
-
-
-static inline void
-contrl_stop_immediate (bbmc_dof_state_t volatile *state, 
-                       bbmc_dof_contrl_t volatile *controller)
+int test_args(int argc, char *argv[], cmd_args_t *args)
 {
-    #ifdef DRIVER_MODE_VOLTAGE
+    //TODO
     
-    controller->output.value = 0;
-    
-    #endif
-    
-    #ifdef DRIVER_MODE_CURRENT
-    
-    int dof_id = controller->dof_id;
-    
-    controller->arg_double[2] += (- state->state.speed);
-    
-    controller->output.value = g_args_stop[dof_id].arg_double[0] * (- state->state.speed);
-    
-    controller->output.value += g_args_stop[dof_id].arg_double[1] * g_args_stop[dof_id].arg_double[2];
-    
-    #endif
+    return 0;
 }
 
+int test_pwm  (cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+int test_qei  (cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+int test_gpio (cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+
+
+/** STATUS
+ *  
+ */
+
+int 
+status (int argc, char *argv[])
+{
+    CmdLineClear();
+    
+    UARTPuts("\r\n\e[60C-TOTAL SYSTEM DIAGNOSTIC-", -1);
+    
+    
+    /** column one **/
+
+    CmdLineNewline(2);
+    
+    global_flags_print ("\e[10C");
+    global_state_print (3, "\e[10C");
+    
+    
+    /** column two **/
+    
+    CmdLineCursorMoveTop();
+    CmdLineNewline(2);
+    
+    isr_state_print ("\e[50C");
+    global_positions_print ("\e[50C");
+    
+    
+    /** column three **/
+    
+    CmdLineCursorMoveTop();
+    CmdLineNewline(2);
+    
+    pwm_print ("\e[95C");
+    timers_print ("\e[95C");
+    qei_print ("\e[95C");
+    
+    
+    /** reset cursor **/
+    
+   CmdLineCursorMoveBottom();
+   
+    
+    return (RETURN_STATUS + RETURN_STATUS_SYSDIAG);
+}
+
+
+/** PLANNER
+ *  
+ */
+
+int 
+planner (int argc, char *argv[])
+{
+    UARTPuts("\r\n Im the trajectory planner!. Coming soon...\r\n", -1);
+    //TODO
+    
+    UARTPuts("\r\nInvalid arguments.\r\n", -1);
+    return (RETURN_ERROR_INVALID_ARG);
+}
+
+int 
+planner_args (int argc, char *argv[], cmd_args_t *args)
+{
+    //TODO
+    return (RETURN_ERROR_INVALID_ARG);
+}
+
+
+
+/** DATALOG
+ *  
+ */
+
+int 
+datalog (int argc, char *argv[])
+{
+    if (argc > 10)
+    {
+        UARTPuts("\r\nerror: datalog: Too many arguments.\r\n", -1);
+        return (RETURN_ERROR_MANY_ARGS);
+    }
+    
+    else if (argc > 1)
+    {
+        int dl_ret;
+        int print_range[4] = {0};
+        cmd_args_t args;
+        
+        dl_ret = datalog_args(argc, argv, &args);
+        
+        if (dl_ret < 0)
+        {
+            return dl_ret;
+        }
+        
+        if (!strcmp((const char *)argv[1],"reset"))
+        {
+            datalog_s_init(0);
+            
+            UARTPuts("\r\nDatalogs have been reset.\r\n", -1);
+            return (RETURN_DATALOG + RETURN_DATALOG_RESET);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"print"))
+        {
+            count = isr_state_get (TERM_COUNT);
+            
+            if (count == 0)
+            {
+                UARTPuts("\r\nerror: datalog: There is no data to transmit.\r\n", -1);
+                return (RETURN_DATALOG + RETURN_ERROR_UNKNOWN);
+            }
+            
+            print_range[0] = 0;
+            print_range[1] = count;
+            print_range[2] = args.arg_int[0];
+            print_range[3] = args.arg_int[1];
+            
+            if (args.arg_int[2] < 0)
+            {
+                int i;
+                
+                for (i = 1; i <= BBMC_DOF_NUM; i++)
+                {
+                    datalog_s_print(i, print_range);
+                }
+            }
+            
+            else
+            {
+                datalog_s_print(args.arg_int[2], print_range);
+            }
+            
+            UARTPuts("\r\nDatalog is printing on console...\r\n", -1);
+            return (RETURN_DATALOG + RETURN_DATALOG_PRINT);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"enable"))
+        {
+            global_flag_set (DATALOG);
+            UARTPuts("\r\nDatalog has been enabled.\r\n", -1);
+            return (RETURN_DATALOG + RETURN_DATALOG_ENABLE);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"disable"))
+        {
+            global_flag_clear (DATALOG);
+            UARTPuts("\r\nDatalog has been disabled.\r\n", -1);
+            return (RETURN_DATALOG + RETURN_DATALOG_DISABLE);
+        }
+        
+        else
+        {
+            UARTPuts("\r\nerror: datalog: Invalid datalog function.\r\n", -1);
+            return (RETURN_DATALOG + RETURN_ERROR_INVALID_ARG);
+        }
+    }
+    
+    else
+    {
+        UARTPuts("\r\nerror: datalog: Not enough arguments.\r\n", -1);
+        return (RETURN_ERROR_FEW_ARGS);
+    }
+}
+
+int 
+datalog_args (int argc, char *argv[], cmd_args_t *args)
+{
+    int i;
+    
+    args->arg_int[2] = -1;
+    
+    if (argc > 2)
+    {
+        int dof_id = atoi(argv[2]);
+        
+        if ((dof_id > BBMC_DOF_NUM) || (dof_id <= 0))
+        {
+            UARTPuts("\r\nerror: datalog: Invalid DOF-id argument.\r\n", -1);
+            return (RETURN_DATALOG + RETURN_ERROR_INVALID_ARG);
+        }
+        
+        args->arg_int[2] = dof_id;
+    }
+    
+    args->arg_int[0] = 0;
+    args->arg_int[1] = DATALOG_STATIC_DATASIZE - 1;
+    
+    for (i = 3; i < argc; i++)
+    {
+        if (!strcmp((const char *)argv[i],"-idx"))
+        {
+            args->arg_int[1] = atoi(argv[i+1]);
+            args->arg_int[0] = args->arg_int[1];
+            
+            if (args->arg_int[1] >= DATALOG_STATIC_DATALEN)
+            {
+                UARTPuts("\r\nerror: datalog: Invalid value specified for max index.\r\n", -1);
+                return (RETURN_ERROR_INVALID_OPT_VAL);
+            }
+        }
+        
+        else
+        {
+            UARTPuts("\r\nerror: datalog: Invalid argument option.\r\n", -1);
+            return (RETURN_ERROR_INVALID_OPT); 
+        }
+    }
+
+    return 0;
+}
+
+
+
+/** PERFLOG
+ *  
+ */
+
+int 
+perflog (int argc, char *argv[])
+{
+    
+    if (argc > 10)
+    {
+                
+        UARTPuts("\r\nperflog: error: too many arguments.\r\n", -1);
+        return (RETURN_ERROR_MANY_ARGS);
+    }
+    
+    else if (argc > 1)
+    {
+        if (!strcmp((const char *)argv[1],"reset"))
+        {
+            performance_log_init ();
+            UARTPuts("\r\nPerformance log has been reset.\r\n", -1);
+            return (RETURN_PERF + RETURN_PERF_RESET);
+        }
+        
+        if (!strcmp((const char *)argv[1],"print"))
+        {
+            performance_log_print ();
+            return (RETURN_PERF + RETURN_PERF_PRINT);
+        }
+        
+        if (!strcmp((const char *)argv[1],"enable"))
+        {
+            global_flag_set (DATALOG);
+            UARTPuts("\r\nperflog_measure mode: on\r\n", -1);
+            return (RETURN_PERF + RETURN_PERF_ENABLE);
+        }
+        
+        if (!strcmp((const char *)argv[1],"disable"))
+        {
+            global_flag_clear (DATALOG);
+            UARTPuts("\r\nperflog_measure mode: off\r\n", -1);
+            return (RETURN_PERF + RETURN_PERF_DISABLE);
+        }
+    }
+    
+    else
+    {
+        UARTPuts("\r\nperflog: error: not enough arguments.\r\n", -1);
+        return (RETURN_ERROR_FEW_ARGS);
+    }
+    
+    UARTPuts("\r\nperflog: error: unknown execution event.\r\n", -1);
+    return (RETURN_ERROR_UNKNOWN);
+}
+
+
+
+/** CONFIG
+ *  
+ */
+
+int 
+config (int argc, char *argv[])
+{
+    static char *X_format = 
+    "\r\nProceed with <>? [Y/n]: ";
+    
+    static char *poscalib_format = 
+    "\r\nProceed with position calibration? [Y/n]: ";
+    
+    static char *gstate_format = 
+    "\r\nProceed with Global State Reset? [Y/n]: ";
+    
+    cmd_args_t args;
+    char config_buff[RX_BUFF_SIZE];
+    int config_ret = 0;
+    
+    
+    if (argc > 10)
+    {
+        UARTPuts("\r\nconfig: error: Too many arguments.\r\n", -1);
+        return (RETURN_ERROR_MANY_ARGS);
+    }
+    
+    else if (argc > 2)
+    {
+        if (!strcmp((const char *)argv[1],"gstate"))
+        {
+            config_gstate_args(argc, argv, &args);
+            
+            config_ret = util_checkpoint_yn (gstate_format, config_buff);
+            
+            if (config_ret == 1)
+            {
+                config_gstate (&args);
+                UARTPuts("\r\nGlobal State has been reset.\r\n", -1);
+                return (RETURN_RESET + RETURN_CONFIG_GSTATE);
+            }
+            
+            UARTPuts("\r\nGlobal State reset has been aborted.\r\n", -1);
+            return (RETURN_RESET + RETURN_CONFIG_GSTATE);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"poscalib"))
+        {
+            //TODO
+            
+            UARTPuts("\r\nReturning to BBMC-CLI.\r\n", -1);
+            return (RETURN_CONFIG + RETURN_CONFIG_POSCALIB);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"qei"))
+        {
+            //TODO
+            
+            UARTPuts("\r\n \r\n", -1);
+            return (RETURN_CONFIG + RETURN_CONFIG_QEI);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"pwm"))
+        {
+            //TODO
+            
+            UARTPuts("\r\n \r\n", -1);
+            return (RETURN_CONFIG + RETURN_CONFIG_PWM);
+        }
+        
+        else if (!strcmp((const char *)argv[1],"timers"))
+        {
+            //TODO
+            
+            UARTPuts("\r\n \r\n", -1);
+            return (RETURN_CONFIG + RETURN_CONFIG_TIMERS);
+        }
+        
+        else
+        {
+            UARTPuts("\r\nerror: config: invalid argument.\r\n", -1);
+            return (RETURN_CONFIG + RETURN_ERROR_INVALID_ARG);
+        }
+    }
+    
+    else
+    {
+        ;
+    }
+    
+    UARTPuts("\r\nerror: config: not enough arguments specified\r\n", -1);
+    return (RETURN_CONFIG + RETURN_ERROR_INVALID_ARG);
+}
+
+int 
+config_gstate_args (int argc, char *argv[], cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+int 
+config_gstate (cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+int 
+config_poscalib_args (int argc, char *argv[], cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+int 
+config_poscalib (cmd_args_t *args)
+{
+    //TODO
+    
+    return 0;
+}
+
+
+
+/** DEBUG
+ *  
+ */
+
+int 
+debug (int argc, char *argv[])
+{
+    if (argc > 1)
+    {
+        if (!strcmp((const char *)argv[1],"enable"))
+        {
+            global_flags_set(DEBUG);
+            UARTPuts("\r\ndebug mode: on\r\n", -1);
+            return (RETURN_DEBUG + RETURN_DEBUG_ENABLE);
+        }
+        if (!strcmp((const char *)argv[1],"disable"))
+        {
+            global_flags_clear(DEBUG);
+            UARTPuts("\r\ndebug mode: off\r\n", -1);
+            return (RETURN_DEBUG + RETURN_DEBUG_DISABLE) ;
+        }
+    }
+    
+    UARTPuts("\r\ndebug: invalid function\r\n", -1);
+    return (RETURN_DEBUG + RETURN_ERROR_INVALID_ARG);
+}
+
+
+
+/** QUIT
+ *  
+ */
+
+int 
+quit (int argc, char *argv[])
+{
+    // TODO: either add shutdown functionality here or after primary while() loop. 
+    
+    global_flags_set(CMD_LINE);
+    
+    return (RETURN_QUIT);
+}
+
+
+
+
+/**
+ * 
+ */
+
+
+/*
+
+void contrl_reset_poscalib (bbmc_dof_state_t volatile *state, 
+                                     bbmc_dof_contrl_t volatile *controller);
+
+void contrl_test_dsr (bbmc_dof_state_t volatile *state, 
+                               bbmc_dof_contrl_t volatile *controller);
+
+void term_reset_poscalib (bbmc_dof_state_t volatile *state, 
+                                   bbmc_dof_contrl_t volatile *controller);
+
+void term_test_dsr (bbmc_dof_state_t volatile *state, 
+                             bbmc_dof_contrl_t volatile *controller);
 
 static void 
 contrl_reset_poscalib (bbmc_dof_state_t volatile *state, 
@@ -99,842 +617,8 @@ term_test_dsr (bbmc_dof_state_t volatile *state,
     ;
 }
 
-
-void 
-isr_systick(void)
-{
-    //! this can remain like this for now, but must be updated
-    //! new features will be added to systick.
-    
-    DMTimerIntDisable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-    DMTimerIntStatusClear(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_IT_FLAG);
-    
-    timer_ticks++;
-    timer_ticking = 1;
-    
-    DMTimerIntEnable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-}
-
-void 
-isr_gpio_pos_limit(void)
-{
-    static int counter = 0;
-    
-    if ((GPIOPinIntStatus(HALL_Y_GPIO_ADDRESS, HALL_Y_GPIO_INT_LINE, HALL_Y_GPIO_PIN) 
-        >> HALL_Y_GPIO_PIN))
-    {
-        if (((GPIOPinRead(HALL_Y_GPIO_ADDRESS, HALL_Y_GPIO_PIN) >> HALL_Y_GPIO_PIN)) && 
-            (g_flags.gpos_reset[0] == 0))
-        {
-            
-            g_flags.gpos_reset[0] = 1;         /* next reset via the MAX position */
-            g_flags.stop_immediate = 1;
-            
-            if (g_flags.debug == 1)
-            {
-                
-                UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: minpos y\r\n", -1);
-            }
-        }
-        if ((!(GPIOPinRead(HALL_Y_GPIO_ADDRESS, HALL_Y_GPIO_PIN) >> HALL_Y_GPIO_PIN)) &&
-            (g_flags.gpos_reset[0] == 1))
-            {
-            
-            g_flags.gpos_reset[0] = 0;         /* next reset via the MIN position */
-            g_flags.stop_immediate = 1;
-            
-            if (g_flags.debug == 1)
-            {
-                UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: maxpos y\r\n", -1);
-            }
-        }
-        
-        /* clear status(masked) of interrupts */
-        GPIOPinIntClear(HALL_Y_GPIO_ADDRESS, HALL_Y_GPIO_INT_LINE, HALL_Y_GPIO_PIN);
-    }
-    
-    if ((GPIOPinIntStatus(HALL_X_GPIO_ADDRESS, HALL_X_GPIO_INT_LINE, HALL_X_GPIO_PIN)
-            >> HALL_X_GPIO_PIN))
-    {
-        if (((GPIOPinRead(HALL_X_GPIO_ADDRESS, HALL_X_GPIO_PIN) >> HALL_X_GPIO_PIN)) && 
-            (g_flags.gpos_reset[1] == 0))
-        {
-            g_flags.gpos_reset[1] = 1;             /* next reset via the MAX position */
-            g_flags.stop_immediate = 1;
-            
-            if (g_flags.debug == 1)
-            {
-                UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: minpos x\r\n", -1);
-            }
-        }
-        if ((!(GPIOPinRead(HALL_X_GPIO_ADDRESS, HALL_X_GPIO_PIN) >> HALL_X_GPIO_PIN)) && 
-            (g_flags.gpos_reset[1] == 1))
-        {
-            g_flags.gpos_reset[1] = 0;             /* next reset via the MIN position */
-            g_flags.stop_immediate = 1;
-            
-            if (g_flags.debug == 1)
-            {
-                UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: maxpos x\r\n", -1);
-            }
-        }
-        
-        /* clear status(masked) of interrupts */
-        GPIOPinIntClear(HALL_X_GPIO_ADDRESS, HALL_X_GPIO_INT_LINE, HALL_X_GPIO_PIN);
-    }
-    
-    if (g_flags.stop_immediate == 1)
-    {
-        
-        g_flags.stop_immediate = 1;
-        g_flags.isr_return = ISR_RETURN_GPIO_LIM;
-        counter= 0;
-        timer_ticks = 0;
-        
-        DMTimerEnable(SOC_DMTIMER_5_REGS);
-        
-        for (;;)
-        {
-            
-            /* state inputs */
-            #ifdef INPUT_QEP_DUAL
-                input_qei_dual(&g_dof_state[0]);
-                input_qei_dual(&g_dof_state[1]);
-            #endif
-            #ifdef INPUT_QEP_STD
-                input_qei_std(&g_dof_state[0]);
-                input_qei_std(&g_dof_state[1]);
-            #endif
-            #ifdef INPUT_QEP_CAP
-                input_qei_cap(&g_dof_state[0]);
-                input_qei_cap(&g_dof_state[1]);
-            #endif
-            
-            /* stopping algorithm */
-            //contrl_stop_immediate(&g_dof_state[0], &g_args_stop[0]);
-            //contrl_stop_immediate(&g_dof_state[1], &g_args_stop[1]);
-            
-            g_args_stop[0].output.value = 0;
-            g_args_stop[1].output.value = 0;
-            
-            if ((fabs(g_dof_state[0].state.speed) <= STOP_SPEED_X) && 
-                 (fabs(g_dof_state[1].state.speed) <= STOP_SPEED_X))
-            {
-                
-                counter = timer_ticks;
-                
-                if (counter >= MAX_STOP_COUNT)
-                {
-                    g_args_stop[0].output.value = 0;
-                    g_args_stop[1].output.value = 0;
-                    
-                    g_isr_state.termination_flag = 1;
-                    break;
-                }
-            }
-            
-            /* controller output */
-            #ifdef OUTPUT_PWM_DIFF
-                output_pwm_dif(&(g_args_stop[0].output));
-                output_pwm_dif(&(g_args_stop[1].output));
-            #endif
-            #ifdef OUTPUT_PWM_DIR
-                output_pwm_dir(&(g_args_stop[0].output));
-                output_pwm_dir(&(g_args_stop[1].output));
-            #endif
-            
-            /* start tick timer */
-            DMTimerIntEnable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-            
-            while(timer_ticking == 0)
-            {
-                ;
-            }
-            
-            /* stop tick timer */
-            DMTimerIntDisable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-            DMTimerIntStatusClear(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_IT_FLAG);
-            
-        }
-        
-        /* stop tick timer */
-        DMTimerIntDisable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-        DMTimerIntStatusClear(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_IT_FLAG);
-        
-        g_args_stop[0].output.value = 0;
-        g_args_stop[1].output.value = 0;
-        
-        /* controller output */
-        #ifdef OUTPUT_PWM_DIFF
-            output_pwm_dif(&(g_args_stop[0].output));
-            output_pwm_dif(&(g_args_stop[1].output));
-        #endif
-        #ifdef OUTPUT_PWM_DIR
-            output_pwm_dir(&(g_args_stop[0].output));
-            output_pwm_dir(&(g_args_stop[1].output));
-        #endif
-        
-        sysconfig_pwm_disable(1);
-        sysconfig_pwm_disable(2);
-        
-        /* stop tick timer */
-        DMTimerDisable(SOC_DMTIMER_5_REGS);
-    
-        UARTPuts("\r\n\r\n\tGPIO pos-lim system has enacted Emergency Stop\r\n", -1);
-    }
-}
-
-void 
-isr_gpio_killswitch(void)
-{
-    static int counter = 0;
-    
-    if ((GPIOPinIntStatus(KILLSWITCH_GPIO_ADDRESS, KILLSWITCH_GPIO_INT_LINE, 
-            KILLSWITCH_GPIO_PIN) >> KILLSWITCH_GPIO_PIN))
-    {
-        
-        g_flags.stop_immediate = 1;
-        g_flags.isr_return = ISR_RETURN_KILLSW;
-        counter = 0;
-        timer_ticks = 0;
-        
-        DMTimerEnable(SOC_DMTIMER_5_REGS);
-        
-        for (;;)
-        {
-            /* state inputs */
-            #ifdef INPUT_QEP_DUAL
-                input_qei_dual(&g_dof_state[0]);
-                input_qei_dual(&g_dof_state[1]);
-            #endif
-            #ifdef INPUT_QEP_STD
-                input_qei_std(&g_dof_state[0]);
-                input_qei_std(&g_dof_state[1]);
-            #endif
-            #ifdef INPUT_QEP_CAP
-                input_qei_cap(&g_dof_state[0]);
-                input_qei_cap(&g_dof_state[1]);
-            #endif
-            
-            /* stopping algorithm */
-            //contrl_stop_immediate(&g_dof_state[0], &g_args_stop[0]);
-            //contrl_stop_immediate(&g_dof_state[1], &g_args_stop[1]);
-            
-            g_args_stop[0].output.value = 0;
-            g_args_stop[1].output.value = 0;
-            
-            if ((fabs(g_dof_state[0].state.speed) <= STOP_SPEED_X) && 
-                 (fabs(g_dof_state[1].state.speed) <= STOP_SPEED_X))
-            {
-                
-                counter = timer_ticks;
-                
-                if (counter >= MAX_STOP_COUNT)
-                {
-                    g_args_stop[0].output.value = 0;
-                    g_args_stop[1].output.value = 0;
-                    
-                    g_isr_state.termination_flag = 1;
-                    break;
-                }
-            }
-            
-            /* controller output */
-            #ifdef OUTPUT_PWM_DIFF
-                output_pwm_dif(&(g_args_stop[0].output));
-                output_pwm_dif(&(g_args_stop[1].output));
-            #endif
-            #ifdef OUTPUT_PWM_DIR
-                output_pwm_dir(&(g_args_stop[0].output));
-                output_pwm_dir(&(g_args_stop[1].output));
-            #endif
-            
-            /* start tick timer */
-            DMTimerIntEnable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-            
-            while(timer_ticking == 0)
-            {
-                ;
-            }
-            
-            /* stop tick timer */
-            DMTimerIntDisable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-            DMTimerIntStatusClear(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_IT_FLAG);
-            
-        }
-        
-        /* stop tick timer */
-        DMTimerIntDisable(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_EN_FLAG);
-        DMTimerIntStatusClear(SOC_DMTIMER_5_REGS, DMTIMER_INT_OVF_IT_FLAG);
-        
-        /* stop tick timer */
-        DMTimerDisable(SOC_DMTIMER_5_REGS);
-        
-        g_args_stop[0].output.value = 0;
-        g_args_stop[1].output.value = 0;
-        
-        /* controller output */
-        #ifdef OUTPUT_PWM_DIFF
-            output_pwm_dif(&(g_args_stop[0].output));
-            output_pwm_dif(&(g_args_stop[1].output));
-        #endif
-        #ifdef OUTPUT_PWM_DIR
-            output_pwm_dir(&(g_args_stop[0].output));
-            output_pwm_dir(&(g_args_stop[1].output));
-        #endif
-        
-        sysconfig_pwm_disable(1);
-        sysconfig_pwm_disable(2);
-        
-        UARTPuts("\r\nWARNING: Killswitch has enacted Emergency Stop\r\n", -1);
-        
-        if (g_flags.debug == 1)
-        {
-            UARTPuts("DEBUG_MSG: Killswitch Engage!!\r\n", -1);
-        }
-    }
-    
-    /* clear status (masked) of interrupts */
-    GPIOPinIntClear(KILLSWITCH_GPIO_ADDRESS, KILLSWITCH_GPIO_INT_LINE, KILLSWITCH_GPIO_PIN);
-}
-
-
-
-
-
-
-
-
-/* cmnd_datalog functions */
-
 int 
-cmnd_datalog_args (int argc, char *argv[], bbmc_cmd_args_t *args)
-{
-    int i;
-    
-    args->arg_int[2] = -1;
-    
-    if (argc > 2)
-    {
-        int dof_id = atoi(argv[2]);
-        
-        if ((dof_id > BBMC_DOF_NUM) || (dof_id <= 0))
-        {
-            UARTPuts("\r\nerror: cmnd_datalog: Invalid DOF-id argument.\r\n", -1);
-            return (RETURN_DATALOG + RETURN_ERROR_INVALID_ARG);
-        }
-        
-        args->arg_int[2] = dof_id;
-    }
-    
-    args->arg_int[0] = 0;
-    args->arg_int[1] = DATALOG_STATIC_DATASIZE - 1;
-    
-    for (i = 3; i < argc; i++)
-    {
-        if (!strcmp((const char *)argv[i],"-idx"))
-        {
-            args->arg_int[1] = atoi(argv[i+1]);
-            args->arg_int[0] = args->arg_int[1];
-            
-            if (args->arg_int[1] >= DATALOG_STATIC_DATALEN)
-            {
-                UARTPuts("\r\nerror: cmnd_datalog: Invalid value specified for max index.\r\n", -1);
-                return (RETURN_ERROR_INVALID_OPT_VAL);
-            }
-        }
-        
-        else
-        {
-            UARTPuts("\r\nerror: cmnd_datalog: Invalid argument option.\r\n", -1);
-            return (RETURN_ERROR_INVALID_OPT); 
-        }
-    }
-
-    return 0;
-}
-
-int 
-cmnd_datalog(int argc, char *argv[])
-{
-    if (argc > 10)
-    {
-        UARTPuts("\r\nerror: cmnd_datalog: Too many arguments.\r\n", -1);
-        return (RETURN_ERROR_MANY_ARGS);
-    }
-    
-    else if (argc > 1)
-    {
-        int dl_ret;
-        int print_range[4] = {0};
-        bbmc_cmd_args_t args;
-        
-        dl_ret = cmnd_datalog_args(argc, argv, &args);
-        
-        if (dl_ret < 0)
-        {
-            return dl_ret;
-        }
-        
-        if (!strcmp((const char *)argv[1],"reset"))
-        {
-            if (args.arg_int[2] < 0)
-            {
-                int i;
-                
-                for (i = 0; i < BBMC_DOF_NUM; i++)
-                {
-                    datalog_s_init(&g_datalog[i], 0);
-                }
-            }
-            
-            else
-            {
-                datalog_s_init(&g_datalog[args.arg_int[2]-1], 0);
-            }
-            
-            UARTPuts("\r\nDatalog has been reset.\r\n", -1);
-            return (RETURN_DATALOG + RETURN_DATALOG_RESET);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"print"))
-        {
-            if (g_isr_state.iteration_counter == 0)
-            {
-                UARTPuts("\r\nerror: cmnd_datalog: There is no data to transmit.\r\n", -1);
-                return (RETURN_DATALOG + RETURN_ERROR_UNKNOWN);
-            }
-            
-            print_range[0] = 0;
-            print_range[1] = g_isr_state.iteration_counter;
-            print_range[2] = args.arg_int[0];
-            print_range[3] = args.arg_int[1];
-            
-            if (args.arg_int[2] < 0)
-            {
-                int i;
-                
-                for (i = 0; i < BBMC_DOF_NUM; i++)
-                {
-                    datalog_s_print(&g_datalog[i], print_range);
-                }
-            }
-            
-            else
-            {
-                datalog_s_print(&g_datalog[args.arg_int[2]-1], print_range);
-            }
-            
-            UARTPuts("\r\nDatalog is printing on console...\r\n", -1);
-            return (RETURN_DATALOG + RETURN_DATALOG_PRINT);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"enable")){
-            
-            g_flags.datalog = 1;
-            UARTPuts("\r\nDatalog has been enabled.\r\n", -1);
-            return (RETURN_DATALOG + RETURN_DATALOG_ENABLE);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"disable"))
-        {
-            g_flags.datalog = 0;
-            UARTPuts("\r\nDatalog has been disabled.\r\n", -1);
-            return (RETURN_DATALOG + RETURN_DATALOG_DISABLE);
-        }
-        
-        else
-        {
-            UARTPuts("\r\nerror: cmnd_datalog: Invalid datalog function.\r\n", -1);
-            return (RETURN_DATALOG + RETURN_ERROR_INVALID_ARG);
-        }
-    }
-    
-    else
-    {
-        UARTPuts("\r\nerror: cmnd_datalog: Not enough arguments.\r\n", -1);
-        return (RETURN_ERROR_FEW_ARGS);
-    }
-}
-
-int 
-cmnd_perf(int argc, char *argv[])
-{
-    
-    if (argc > 10)
-    {
-                
-        UARTPuts("\r\nperf: error: too many arguments.\r\n", -1);
-        return (RETURN_ERROR_MANY_ARGS);
-    }
-    else if (argc > 1)
-    {
-        if (!strcmp((const char *)argv[1],"reset"))
-        {
-            bbmc_perf_init();
-            UARTPuts("\r\nPerformance log has been reset.\r\n", -1);
-            return (RETURN_PERF + RETURN_PERF_RESET);
-        }
-        
-        if (!strcmp((const char *)argv[1],"print"))
-        {
-            bbmc_perf_print();
-            return (RETURN_PERF + RETURN_PERF_PRINT);
-        }
-        
-        if (!strcmp((const char *)argv[1],"enable"))
-        {
-            g_flags.perf = 1;
-            UARTPuts("\r\nperf_measure mode: on\r\n", -1);
-            return (RETURN_PERF + RETURN_PERF_ENABLE);
-        }
-        
-        if (!strcmp((const char *)argv[1],"disable"))
-        {
-            g_flags.perf = 0;
-            UARTPuts("\r\nperf_measure mode: off\r\n", -1);
-            return (RETURN_PERF + RETURN_PERF_DISABLE);
-        }
-    }
-    
-    else
-    {
-        UARTPuts("\r\nperf: error: not enough arguments.\r\n", -1);
-        return (RETURN_ERROR_FEW_ARGS);
-    }
-    
-    UARTPuts("\r\nperf: error: unknown execution event.\r\n", -1);
-    return (RETURN_ERROR_UNKNOWN);
-}
-
-
-/* reset command */
-
-int 
-cmnd_reset_poscalib_args (int argc, char *argv[], bbmc_cmd_args_t *args)
-{
-    int dof_id;
-    
-    /*  argument map:
-     * 
-     *  i0: -                         , d0: output - limit (max) value
-     *  i1: -                         , d1: speed  - limit (max)
-     *  i2: -                         , d2: -
-     *  i3: -                         , d3: -
-     *  i4: -                         , d4: -
-     *  i5: -                         , d5: -
-     *  i6: -                         , d6: -
-     *  i7: -                         , d7: -
-     */
-    
-    dof_id = atoi(argv[2]);
-    
-    if ((dof_id > BBMC_DOF_NUM) || (dof_id <= 0))
-    {
-        UARTPuts( "\r\nerror: cmnd_reset: invalid DOF-id", -1);
-        return -1;
-    }
-    
-    args->arg_uint[0] = (unsigned int)dof_id;
-    
-    /* if reset mode is manually determined */
-    if (argc > 3)
-    {
-        int i;
-        
-        for(i = 3; i < argc; i++)
-        {
-            if (!strcmp((const char *)argv[i], "-min"))
-            {
-                g_flags.gpos_reset[dof_id-1] = 0;
-            }
-            
-            else if (!strcmp((const char *)argv[i-1], "-max"))
-            {
-                g_flags.gpos_reset[dof_id-1] = 1;
-            }
-            /*else if (!strcmp((const char *)argv[i], "<HERE>"){
-                
-               <CODE HERE>; <ADD TO ARGS SET BELOW ALSO>;
-            }*/
-            
-            else
-            {
-                UARTPuts("\r\nreset: error: invalid option argument; argument must be in {-min, -max}.\r\n", -1);
-                return -1;
-            }
-        }
-    }
-    
-    /* configure direction gain */
-    if (g_flags.gpos_reset[dof_id-1] == 0)
-    {
-        args->arg_int[0] = -1;
-    }
-    
-    if (g_flags.gpos_reset[dof_id-1] == 1)
-    {
-        args->arg_int[0] = 1;
-    }
-    
-    /* setup control and pointers to global data */
-    rmpi_state = &g_dof_state[dof_id-1];
-    rmpi_args = &g_args_contrl[dof_id-1];
-    rmpi_limits = &g_position_limits[dof_id-1];
-    
-    /* setup for calibration functionality */
-    rmpi_contrl.traject_func = traject_null;
-    rmpi_contrl.contrl_func = contrl_reset_poscalib;
-    rmpi_contrl.term_func = term_reset_poscalib;
-    
-    /* setup i/o functions */
-    #ifdef INPUT_QEP_DUAL
-        rmpi_io.input_func = input_qei_dual;
-    #endif
-    #ifdef INPUT_QEP_STD
-        rmpi_io.input_func = input_qei_std;
-    #endif
-    #ifdef INPUT_QEP_CAP
-        rmpi_io.input_func = input_qei_cap;
-    #endif  
-    #ifdef OUTPUT_PWM_DIFF
-        rmpi_io.output_func = output_pwm_dif;
-    #endif
-    #ifdef OUTPUT_PWM_DIR
-        rmpi_io.output_func = output_pwm_dir;
-    #endif
-    
-    return 0;
-}
-
-int 
-cmnd_reset_poscalib_func (int argc, char *argv[], bbmc_cmd_args_t *args)
-{
-    int ret;
-    unsigned int dof_id;
-    
-    dof_id = args->arg_int[0];
-    
-    /* controller ouput limit values */
-    if (dof_id == 1)
-    {
-        rmpi_args->arg_double[0] = args->arg_int[0] * POSCALIB_MAX_DUTY_Y;
-        rmpi_args->arg_double[1] = args->arg_int[0] * POSCALIB_SPEED_GAIN_Y;
-        rmpi_args->state_desired.q_dot = args->arg_int[0] * POSCALIB_SPEED_DEST_Y;
-    }
-    
-    else if (dof_id == 2)
-    {
-        rmpi_args->arg_double[0] = args->arg_int[0] * POSCALIB_MAX_DUTY_X;
-        rmpi_args->arg_double[1] = args->arg_int[0] * POSCALIB_SPEED_GAIN_X;
-        rmpi_args->state_desired.q_dot = args->arg_int[0] * POSCALIB_SPEED_DEST_X;
-    }
-    
-    else
-    {
-        ; /* this is here to support additional axes in the future */
-    }
-    
-    /* reset required g_flags */
-    g_flags.stop_immediate = 0;
-    
-    ret = func_rmpi(dof_id);
-    
-    if (ret < 0)
-    {
-        return ret;
-    }
-    
-    sysconfig_position_reset(dof_id);
-    
-    UARTprintf("\r\nGlobal position calibration for axis-%d has completed.", 
-               dof_id);
-    
-    return 0;
-}
-
-int 
-cmnd_reset(int argc, char *argv[])
-{
-    static char *reset_calib_format = "\r\nProceed with Position Reset? [Y/n]: ";
-    static char *reset_goto_format = "\r\nReset to HOME position? [Y/n]: ";
-    
-    char reset_buff[RX_BUFF_SIZE];
-    int reset_ret=0;
-    
-    if (argc > 10)
-    {
-        UARTPuts("\r\nreset: error: Too many arguments.\r\n", -1);
-        return (RETURN_ERROR_MANY_ARGS);
-    }
-    
-    else if (argc > 2)
-    {
-        bbmc_cmd_args_t args;
-        
-        /* Calibrate and Reset Position Counter - Absolute Global Position  */
-        if (!strcmp((const char *)argv[1],"poscalib"))
-        {
-            /* Note on args: 
-             * 
-             * uint0 = dof_id
-             * int0 = direction
-             * 
-             */
-            
-            reset_ret = cmnd_reset_poscalib_args(argc, argv, &args);
-            
-            if (reset_ret == -1)
-            {
-                return (RETURN_ERROR_INVALID_ARG);
-            }
-            
-            g_flags.contrl_run = util_checkpoint_yn(reset_calib_format, reset_buff);
-            
-            if (g_flags.contrl_run == 1)
-            {
-                UARTPuts("\r\nPress any key to start position calibration..", -1);
-                UARTGets(reset_buff,  2);
-                
-                reset_ret = cmnd_reset_poscalib_func(argc, argv, &args);
-                
-                if (reset_ret < 0)
-                {
-                    return (reset_ret);
-                }
-            }
-            
-            else
-            {
-                UARTprintf("\r\n\tCalibration of global position has been aborted.\r\n");
-                return (RETURN_ERROR_RUN_ABORT);
-            }
-                
-            reset_ret = util_checkpoint_yn(reset_goto_format, reset_buff);
-            
-            if (reset_ret == 1)
-            {
-                bbmc_sysflags_clear (&g_flags, "-isr");
-                bbmc_sysflags_clear (&g_flags, "-log");
-                
-                reset_ret = bbmc_goto_home();
-                
-                if (reset_ret != (RETURN_GOTO + ISR_RETURN_CLEAN))
-                {
-                    return reset_ret;
-                }
-            }
-            
-            UARTPuts("\r\nReturning to BBMC-CLI.\r\n", -1);
-            return (RETURN_RESET + RETURN_RESET_POSCALIB);
-        }
-        /* Reset System State  */
-        else if (!strcmp((const char *)argv[1],"systate"))
-        {
-            //!
-            
-            UARTPuts("\r\nSystem State has been reset.\r\n", -1);
-            return (RETURN_RESET + RETURN_RESET_SYSSTATE);
-        }
-        /* < TITLE HERE > */
-        /*if (!strcmp((const char *)argv[1],"")){
-            ;
-        }*/
-        
-        else
-        {
-            UARTPuts("\r\nreset: error:Invalid fucntion argument.\r\n", -1);
-            return (RETURN_ERROR_INVALID_ARG);
-        }
-    }
-    
-    else
-    {
-        UARTPuts("\r\nreset: error: Not enough arguments specified.\r\n", -1);
-        return (RETURN_ERROR_FEW_ARGS);
-    }
-}
-
-
-int 
-cmnd_path(int argc, char *argv[])
-{
-    
-    UARTPuts("\r\n im the trajectory planner/designer!\r\n", -1);
-    //return 5;
-    //trajectory generator
-    
-    UARTPuts("\r\nInvalid arguments.\r\n", -1);
-    return (RETURN_ERROR_INVALID_ARG);
-}
-
-
-int 
-cmnd_config(int argc, char *argv[])
-{
-    static char *config_X_format = 
-    "\r\nProceed with <>? [Y/n]: ";
-    
-    bbmc_cmd_args_t args;
-    char config_buff[RX_BUFF_SIZE];
-    int config_ret;
-    
-    if (argc > 2)
-    {
-        if (!strcmp((const char *)argv[1],"gains"))
-        {
-            //!
-            
-            UARTPuts("\r\n \r\n", -1);
-            return (RETURN_CONFIG + RETURN_CONFIG_GAINS);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"qei"))
-        {
-            //!
-            
-            UARTPuts("\r\n \r\n", -1);
-            return (RETURN_CONFIG + RETURN_CONFIG_QEI);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"pwm"))
-        {
-            //!
-            
-            UARTPuts("\r\n \r\n", -1);
-            return (RETURN_CONFIG + RETURN_CONFIG_PWM);
-        }
-        
-        else if (!strcmp((const char *)argv[1],"timers"))
-        {
-            //!
-            
-            UARTPuts("\r\n \r\n", -1);
-            return (RETURN_CONFIG + RETURN_CONFIG_TIMERS);
-        }
-        
-        /* < TITLE HERE > */
-        /*else if (!strcmp((const char *)argv[1],"")){
-            ;
-        }*/
-        
-        else
-        {
-            UARTPuts("\r\nerror: cmnd_config: invalid argument.\r\n", -1);
-            return 54;
-        }
-    }
-    
-    UARTPuts("\r\nerror: cmnd_config: not enough arguments specified\r\n", -1);
-    return (RETURN_CONFIG + RETURN_ERROR_INVALID_ARG);
-}
-
-
-
-/* test command functions */
-
-int 
-cmnd_test_pwm_func  (int argc, char *argv[], unsigned int dof_id)
+test_pwm_func  (int argc, char *argv[], unsigned int dof_id)
 {
     char buff[32];
     bbmc_dof_output_t volatile test_out;
@@ -962,7 +646,7 @@ cmnd_test_pwm_func  (int argc, char *argv[], unsigned int dof_id)
         }
         else
         {
-            UARTPuts("\r\nerror: cmnd_test_pwm_func: output mode invalid. argv4 = -{dif,dir}\r\n", -1);
+            UARTPuts("\r\nerror: test_pwm_func: output mode invalid. argv4 = -{dif,dir}\r\n", -1);
             return (RETURN_ERROR_INVALID_OPT);
         }
     }
@@ -1006,7 +690,7 @@ cmnd_test_pwm_func  (int argc, char *argv[], unsigned int dof_id)
 }
 
 int 
-cmnd_test_qei_args(int argc, char *argv[], unsigned int dof_id)
+test_qei_args(int argc, char *argv[], unsigned int dof_id)
 {
     rmpi_io.input_func = input_qei_dual;
     rmpi_io.output_func = output_pwm_dif;
@@ -1095,7 +779,7 @@ cmnd_test_qei_args(int argc, char *argv[], unsigned int dof_id)
 }
 
 int 
-cmnd_test_qei_func(unsigned int dof_id)
+test_qei_func(unsigned int dof_id)
 {
     char buff[32];
     
@@ -1154,7 +838,7 @@ cmnd_test_qei_func(unsigned int dof_id)
 }
 
 int 
-cmnd_test_gpio_func (int argc, char *argv[], unsigned int dof_id)
+test_gpio_func (int argc, char *argv[], unsigned int dof_id)
 {
     char buff[32];
     unsigned int test_pin;
@@ -1251,7 +935,7 @@ cmnd_test_gpio_func (int argc, char *argv[], unsigned int dof_id)
 }
 
 int 
-cmnd_test(int argc, char *argv[])
+test(int argc, char *argv[])
 {
     static char *test_qei_format = "\r\nProceed with QEI test? [Y/n]: ";
     
@@ -1261,7 +945,6 @@ cmnd_test(int argc, char *argv[])
     
     if (argc > 1)
     {
-        /** pwm output test - set desired duty to ouput **/
         if (!strcmp((const char *)argv[1],"pwm"))
         {
             if (argc > 2)
@@ -1270,21 +953,20 @@ cmnd_test(int argc, char *argv[])
     
                 if (test_dof > BBMC_DOF_NUM)
                 {
-                    UARTPuts("\r\nerror: cmnd_test: pwm: invalid pwm channel number\r\n", -1);
+                    UARTPuts("\r\nerror: test: pwm: invalid pwm channel number\r\n", -1);
                     return (RETURN_ERROR_INVALID_ARG);
                 }
             }
             
             else
             {
-                UARTPuts("\r\nerror: cmnd_test: pwm: no pwm channel specified\r\n", -1);
+                UARTPuts("\r\nerror: test: pwm: no pwm channel specified\r\n", -1);
                 return (RETURN_ERROR_INVALID_ARG);
             }
             
-            return cmnd_test_pwm_func(argc, argv, test_dof);
+            return test_pwm_func(argc, argv, test_dof);
         }
         
-        /** speed test - read observed speed from encoders **/
         else if (!strcmp((const char *)argv[1],"qei"))
         {
             test_dof = (unsigned int)atoi(argv[2]);
@@ -1295,13 +977,13 @@ cmnd_test(int argc, char *argv[])
                 return (RETURN_ERROR_INVALID_ARG);
             }
             
-            cmnd_test_qei_args(argc, argv, test_dof);
+            test_qei_args(argc, argv, test_dof);
             
             g_flags.contrl_run = util_checkpoint_yn(test_qei_format, test_buff);
     
             if (g_flags.contrl_run == 1)
             {
-                return cmnd_test_qei_func(test_dof);
+                return test_qei_func(test_dof);
             }
     
             else
@@ -1311,7 +993,6 @@ cmnd_test(int argc, char *argv[])
             }
         }
         
-        /** test facility for hall maxi/min position sensors **/
         else if (!strcmp((const char *)argv[1], "gpio"))
         {
             test_dof = (unsigned int)atoi(argv[2]);
@@ -1322,7 +1003,7 @@ cmnd_test(int argc, char *argv[])
                 return (RETURN_ERROR_INVALID_ARG);
             }
             
-            return cmnd_test_gpio_func(argc, argv, test_dof); 
+            return test_gpio_func(argc, argv, test_dof); 
         }
         
         else
@@ -1336,82 +1017,4 @@ cmnd_test(int argc, char *argv[])
     return (RETURN_TEST + RETURN_ERROR_INVALID_ARG);
 }
 
-int 
-cmnd_debug(int argc, char *argv[])
-{
-    
-    if (argc > 1)
-    {
-        if (!strcmp((const char *)argv[1],"enable"))
-        {
-            g_flags.debug = 1;
-            UARTPuts("\r\ndebug mode: on\r\n", -1);
-            return (RETURN_DEBUG + RETURN_DEBUG_ENABLE);
-        }
-        if (!strcmp((const char *)argv[1],"disable"))
-        {
-            g_flags.debug = 0;
-            UARTPuts("\r\ndebug mode: off\r\n", -1);
-            return (RETURN_DEBUG + RETURN_DEBUG_DISABLE) ;
-        }
-    }
-    
-    UARTPuts("\r\ndebug: invalid function\r\n", -1);
-    return (RETURN_DEBUG + RETURN_ERROR_INVALID_ARG);
-}
-
-
-
-int 
-cmnd_status (int argc, char *argv[])
-{
-    bbmc_cli_clear();
-    
-    UARTPuts("\r\n\e[60C-TOTAL SYSTEM DIAGNOSTIC-", -1);
-    
-    /* column one */
-    
-    bbmc_cli_newlin(2);
-    
-    bbmc_sysflags_print(&g_flags, "\e[10C");
-    
-    bbmc_dof_state_print(3, "\e[10C");
-    
-    /* column two */
-    
-    bbmc_cli_cursor_mv_top();
-    
-    bbmc_cli_newlin(2);
-    
-    bbmc_cisr_print(&g_isr_state, "\e[50C");
-    
-    bbmc_poslim_print("\e[50C");
-    
-    /* column three */
-    
-    bbmc_cli_cursor_mv_top();
-    
-    bbmc_cli_newlin(2);
-    
-    bbmc_pwm_print("\e[95C");
-    
-    bbmc_timers_print("\e[95C");
-    
-    bbmc_qei_print("\e[95C");
-    
-    /* reset cursor */
-    
-    bbmc_cli_cursor_mv_bottom();
-    
-    return (RETURN_STATUS + RETURN_STATUS_SYSDIAG);
-}
-
-int 
-cmnd_quit(int argc, char *argv[])
-{
-    
-    // TODO: either add shutdown functionality here or after primary while() loop. 
-    
-    g_flags.cmdln = -1;
-    return (RETURN_QUIT);
-}
+*/

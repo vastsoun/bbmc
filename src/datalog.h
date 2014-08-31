@@ -8,10 +8,10 @@
 
 
 /** BBMC Headers **/
-//TODO
+#include "motor_control.h"
 
 
-/** Datalog functions
+/** Datalog API Functions
  * 
  */
 
@@ -28,6 +28,18 @@ void datalog_s_write (unsigned int index,
                       bbmc_output_motor_t  volatile *contrl);
 
 int datalog_s_print (int range_indeces[4]);
+
+
+
+/** Performance Log API Functions
+ * 
+ */
+
+int performance_log_init (void);
+
+int performance_log_write (unsigned int index, unsigned int value);
+
+int performance_log_print (unsigned int iterations);
 
 
 

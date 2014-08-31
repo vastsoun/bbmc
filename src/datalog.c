@@ -2,7 +2,17 @@
 #include "datalog.h"
 
 /** Std C Headers **/
+#include <stdlib.h>
+#include <errno.h>
+#include <ctype.h>
+#include <string.h>
+#include <math.h>
 
+/** Firmware Headers **/
+#include "uartStdio.h"
+
+/** BBMC Headers **/
+#include "util.h"
 
 
 
@@ -44,11 +54,12 @@ datalog_s_t;
 /** Internal Data
  * 
  */
-static datalog_s_t volatile   g_datalog[BBMC_DOF_NUM];
+static datalog_s_t  volatile   g_datalog[BBMC_DOF_NUM];
+
+static unsigned int volatile   g_perflog[GLOBAL_DATA_MAX];
 
 
-
-/** Datalog functions
+/** Datalog API Functions
  * 
  */
 
@@ -101,12 +112,12 @@ datalog_s_write (unsigned int dev_id,
                  bbmc_input_encoder_t volatile *state,
                  bbmc_output_motor_t  volatile *contrl)
 {
-    g_datalog[dev_id].log[index].data[0] = state->state.status;
-    g_datalog[dev_id].log[index].data[1] = state->state.count[1];
-    g_datalog[dev_id].log[index].data[2] = state->state.speed;
-    g_datalog[dev_id].log[index].data[3] = contrl->state_desired.q;
-    g_datalog[dev_id].log[index].data[4] = contrl->state_desired.q_dot;
-    g_datalog[dev_id].log[index].data[5] = contrl->output.value;
+    g_datalog[dev_id-1].log[index].data[0] = state->state.status;
+    g_datalog[dev_id-1].log[index].data[1] = state->state.count[1];
+    g_datalog[dev_id-1].log[index].data[2] = state->state.speed;
+    g_datalog[dev_id-1].log[index].data[3] = contrl->state_desired.q;
+    g_datalog[dev_id-1].log[index].data[4] = contrl->state_desired.q_dot;
+    g_datalog[dev_id-1].log[index].data[5] = contrl->output.value;
 }
 
 int datalog_s_single_write (unsigned int dev_id,
@@ -114,7 +125,7 @@ int datalog_s_single_write (unsigned int dev_id,
                             unsigned int datum_index,
                             data_t number)
 {
-    g_datalog[dev_id].log[datum_index].data[log_index] = number;
+    g_datalog[dev_id-1].log[datum_index].data[log_index] = number;
     
     return 0;
 }
@@ -123,15 +134,15 @@ int
 datalog_s_print(unsigned int dev_id, int range_indeces[4])
 {
     /* check for NULL pointer and return error if needed */
-    if (dev_id >= BBMC_DOF_NUM)
+    if (dev_id > BBMC_DOF_NUM)
     {
         UARTPuts("error: datalog_s_print: dev_id is invalid\r\n", -1);
         return -1;
     }
     
     /* get the datalog dimensions */
-    int size = g_datalog[dev_id].d_size;
-    int len = g_datalog[dev_id].l_size;
+    int size = g_datalog[dev_id-1].d_size;
+    int len = g_datalog[dev_id-1].l_size;
     
     int l_index_s;
     int l_index_f;
@@ -205,13 +216,13 @@ datalog_s_print(unsigned int dev_id, int range_indeces[4])
         {
             if (i == (d_index_f - 1))
             {
-                UARTPutDouble(g_datalog[dev_id].log[j].data[i]);
+                UARTPutDouble(g_datalog[dev_id-1].log[j].data[i]);
                 UARTPutc('\r');
                 UARTPutc('\n');
             }
             else
             {
-                UARTPutDouble(g_datalog[dev_id].log[j].data[i]);
+                UARTPutDouble(g_datalog[dev_id-1].log[j].data[i]);
                 UARTPutc(',');
             }
         }
@@ -223,3 +234,48 @@ datalog_s_print(unsigned int dev_id, int range_indeces[4])
 }
 
 
+
+/** Performance Log API Functions
+ * 
+ */
+
+int performance_log_init  (void)
+{
+    int i = 0;
+    
+    for (i = 0; i < GLOBAL_DATA_MAX; i++)
+    {
+        g_perflog[i] = 0;
+    }
+    
+    return 0;
+}
+
+int performance_log_write (unsigned int index, unsigned int value)
+{
+    g_perflog[index] = value;
+    
+    return 0;
+}
+
+int performance_log_print (unsigned int iterations)
+{
+    int i = 0;
+    
+    UARTPuts("\r\nPerformance Log: \r\n\nLOG_START:\r\n Iteration, Ticks\r\n", -1);
+    
+    for(i = 0; i < iterations; ++i)
+    {
+        UARTprintf("%d, %d\r\n", i, (int)(g_perflog[i]));
+    }
+    
+    UARTPuts("\r\nLOG_END\r\n", -1);
+    
+    return 0;
+}
+
+
+
+/**
+ *
+ */
