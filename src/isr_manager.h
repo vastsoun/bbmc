@@ -33,6 +33,14 @@ isr_state;
 
 
 
+/** ISR system Setup
+ * 
+ */
+
+int isr_setup (void);
+
+
+
 /** ISR state funtions 
  * 
  */
@@ -55,14 +63,7 @@ int isr_master_enable  (void);
 
 int isr_master_disable (void);
 
-int isr_function_setup (void);
 
-
-
-/** ISR return value configurer
- * 
- */
-int isr_return_value(unsigned int cmnd_ret, int ret);
 
 
 #ifdef __cplusplus

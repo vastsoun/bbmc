@@ -2,7 +2,7 @@
 #include "system_timers.h"
 
 /** Std C Headers **/
-#include <string.h>
+
 
 /** BBMC Headers **/
 #include "uartStdio.h"
@@ -30,7 +30,7 @@ timer_enable (unsigned int timer)
 {
     int ret;
     
-    if (timer == TIMER_RUN)
+    if (timer == TIMER_EXP)
     {
         dev_timer_1_enable();
         ret = 0;
@@ -67,7 +67,7 @@ timer_disable (unsigned int timer)
 {
     int ret;
     
-    if (timer == TIMER_RUN)
+    if (timer == TIMER_EXP)
     {
         dev_timer_1_disable();
         ret = 0;
@@ -122,13 +122,13 @@ timer_frequency_set (unsigned int timer, double frequency)
 }
 
 int 
-timer_print (const char *format)
+timers_print (const char *format)
 {
     UARTprintf("\r\n%sControl Timer Configurations: \r\n", format);
     
     unsigned int freq;
     
-    timer_frequency_get(TIMER_RUN, &freq);
+    timer_frequency_get(TIMER_EXP, &freq);
     UARTprintf("\r\n%stimer::run  := %d Hz", format, freq);
     
     timer_frequency_get(TIMER_GOTO, &freq);

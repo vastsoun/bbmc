@@ -13,7 +13,7 @@
 
 /** BBMC Headers **/
 #include "bbmc_facilities.h"
-
+#include "global_flags.h"
 #include "util.h"
 
 
@@ -70,7 +70,7 @@ tCmdLineEntry g_cmd_table[MAX_NUM_COMMANDS] =
     {cmd_names[0], cmd_experiment, cmd_help[0]}, {cmd_names[1], cmd_rmpi, cmd_help[1]},
     {cmd_names[2], cmd_goto, cmd_help[2]}, {cmd_names[3], cmd_test, cmd_help[3]},
     {cmd_names[4], cmd_status, cmd_help[4]}, {cmd_names[5], cmd_planner, cmd_help[5]},
-    {cmd_names[6], cmd_datalog, cmd_help[6]}, {cmd_names[7], cmd_perf, cmd_help[7]},
+    {cmd_names[6], cmd_datalog, cmd_help[6]}, {cmd_names[7], cmd_perflog, cmd_help[7]},
     {cmd_names[8], cmd_config, cmd_help[8]}, {cmd_names[9], cmd_debug, cmd_help[9]},
     {cmd_names[10], cmd_quit, cmd_help[10]}, {0,0,0}
 };
@@ -85,8 +85,8 @@ int command_line (void)
     
     for (;;)
     {
-        cmd_flag = global_flag_get(CMD_LINE);
-        debug_flag = global_flag_get(DEBUG);
+        cmd_flag = global_flag_get(FLG_CMDLINE);
+        debug_flag = global_flag_get(FLG_DEBUG);
         
         if (cmd_flag == 0)
         {
@@ -119,7 +119,7 @@ int command_line (void)
  */
 int greeting (void)
 {
-    UARTPuts(g_bbmc_greeting, -1);
+    UARTPuts((char *)g_bbmc_greeting, -1);
     
     return 0;
 }
@@ -167,42 +167,42 @@ int cmd_status (int argc, char*argv[])
 
 int cmd_planner (int argc, char*argv[])
 {
-    planner (arc, argv);
+    planner (argc, argv);
     
     return 0;
 }
 
 int cmd_datalog (int argc, char*argv[])
 {
-    datalog (arc, argv);
+    datalog (argc, argv);
     
     return 0;
 }
 
 int cmd_perflog (int argc, char*argv[])
 {
-    perflog (arc, argv);
+    perflog (argc, argv);
     
     return 0;
 }
 
 int cmd_config (int argc, char*argv[])
 {
-    config (arc, argv);
+    config (argc, argv);
     
     return 0;
 }
 
-int cmd_debug (int argc, char*argv[]);
+int cmd_debug (int argc, char*argv[])
 {
-    debug (arc, argv);
+    debug (argc, argv);
     
     return 0;
 }
 
 int cmd_quit(int argc, char*argv[])
 {
-    quit (arc, argv);
+    quit (argc, argv);
     
     return 0;
 }

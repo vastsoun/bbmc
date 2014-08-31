@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
-#include <string.h>
 #include <math.h>
 
 /** Firmware Headers **/
@@ -17,7 +16,7 @@
 #include "system_timers.h"
 #include "safety_ss.h"
 
-#include "motion_control.h"
+#include "motor_control.h"
 #include "global_flags.h"
 #include "global_state.h"
 
@@ -67,7 +66,7 @@ sys_devices_setup (void)
 int 
 sys_isr_setup (void)
 {
-    isr_function_setup ();
+    isr_setup ();
     isr_state_init ();
     
     return 0;
@@ -105,7 +104,7 @@ sys_motor_control_setup (void)
 int 
 sys_gflag_setup (void)
 {
-    global_flag
+    global_flags_clear (FLG_ALL);
     
     return 0;
 }
@@ -137,7 +136,7 @@ sys_logs_init (void)
     
     datalog_s_setup ();
     datalog_s_init (0);
-    performance_log_init (0);
+    performance_log_init ();
     
     UARTPuts("\tDONE\r\n", -1);
     
@@ -159,18 +158,6 @@ sys_signal_gen_setup (void)
 
 
 /** URETTS Carriage Model & Paramters
- * 
- */
-//TODO
-int 
-sys_uretts_setup (void)
-{
-    
-    return 0;
-}
-
-
-/** URETTS Controller
  * 
  */
 //TODO
@@ -246,14 +233,11 @@ bbmc_setup (void)
     sys_signal_gen_setup ();
     
     sys_uretts_setup ();
-    sys_uretts_control_setup ();
     
     sys_facilities_setup ();
     sys_goto_setup ();
     sys_rmpi_setup ();
-    sys_experiment_setup ()
-    
-    global_flags_clear ("-all");
+    sys_experiment_setup ();
     
     return 0;
 }

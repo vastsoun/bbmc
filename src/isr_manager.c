@@ -5,14 +5,13 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
-#include <string.h>
+
 
 /** Firmware Headers **/
 #include "uartStdio.h"
 
 /** BBMC Headers **/
 #include "device_layer.h"
-#include "system_layer.h"
 #include "util.h"
 
 
@@ -21,9 +20,25 @@
 /** External functions
  * 
  */
-extern void isr_experiment (void);
-extern void isr_goto (void);
-extern void isr_rmpi (void);
+//extern void isr_experiment (void);
+//extern void isr_goto (void);
+//extern void isr_rmpi (void);
+//TODO
+void isr_experiment (void)
+{
+    ;
+}
+
+void isr_goto (void)
+{
+    ;
+}
+
+void isr_rmpi (void)
+{
+    ;
+}
+
 
 extern void isr_gpio_killswitch (void);
 extern void isr_gpio_poslim (void);
@@ -51,9 +66,9 @@ isr_state_t;
  */
 static isr_state_t volatile   g_isr_state;
 
-static isr_fp_t    const      g_isr_funcs[5] = 
+static isr_fp_t    const      g_isr_funcs[6] = 
                                                 {
-                                                    isr_experiment
+                                                    isr_experiment,
                                                     isr_goto,
                                                     isr_rmpi,
                                                     isr_systick,
@@ -66,6 +81,16 @@ static isr_fp_t    const      g_isr_funcs[5] =
 /** ISR state managemenent funtions 
  * 
  */
+
+int 
+isr_setup (void)
+{
+    UARTPuts("\r\nConfiguring Interrupt Controller: ", -1);
+    dev_intc_setup((isr_fp_t *)g_isr_funcs);
+    UARTPuts("\tDONE", -1);
+    
+    return 0;
+}
 
 int 
 isr_state_init (void)
@@ -115,22 +140,22 @@ isr_state_get (isr_state get_mode)
 {
     unsigned int ret_val = 0;
     
-    if (set_mode == ITER_COUNT)
+    if (get_mode == ITER_COUNT)
     {
         ret_val = g_isr_state.iteration_counter;
     }
     
-    else if (set_mode == TERM_COUNT)
+    else if (get_mode == TERM_COUNT)
     {
         ret_val = g_isr_state.termination_counter;
     }
     
-    else if (set_mode == TERM_FLAG)
+    else if (get_mode == TERM_FLAG)
     {
         ret_val = g_isr_state.termination_flag;
     }
     
-    else if (set_mode == TERM_RET)
+    else if (get_mode == TERM_RET)
     {
         ret_val = g_isr_state.termination_return;
     }
@@ -147,18 +172,12 @@ isr_state_get (isr_state get_mode)
 int 
 isr_state_print (const char* format)
 {
-    if (contrl_state == NULL)
-    {
-        UARTPuts("error: contrl_state_get: pointer argument is NULL\r\n", -1);
-        return -1;
-    }
-    
     UARTprintf("\r\n%sISR State is:\r\n", format);
     
-    UARTprintf("\r\n%siteration counter is   :  %d", format, contrl_state->iteration_counter);
-    UARTprintf("\r\n%stermination counter is :  %d", format, contrl_state->termination_counter);
-    UARTprintf("\r\n%stermination flag is    :  %d", format, contrl_state->termination_flag);
-    UARTprintf("\r\n%stermination return is  :  %d", format, contrl_state->termination_return);
+    UARTprintf("\r\n%siteration counter is   :  %d", format, g_isr_state.iteration_counter);
+    UARTprintf("\r\n%stermination counter is :  %d", format, g_isr_state.termination_counter);
+    UARTprintf("\r\n%stermination flag is    :  %d", format, g_isr_state.termination_flag);
+    UARTprintf("\r\n%stermination return is  :  %d", format, g_isr_state.termination_return);
     
     return 0;
 }
@@ -179,57 +198,6 @@ isr_master_disable (void)
 {
     return dev_intc_master_disable();
 }
-
-int
-isr_function_setup(void)
-{
-    return dev_intc_setup (&g_isr_funcs)
-}
-
-
-/** ISR return value tester
- * 
- */
-
-int 
-isr_return_value(unsigned int cmnd_ret, int ret)
-{
-    if (ret == (cmnd_ret + ISR_RETURN_CLEAN))
-    {
-        UARTPuts("\r\nController has executed succesfully.\r\n", -1);
-        return (RETURN_SUCCESS);
-    }
-    
-    else if (ret == (cmnd_ret + ISR_RETURN_POSLIM))
-    {
-        UARTPuts("\r\nWARNING: Controller has been terminated by position limit.\r\n", -1);
-        return (RETURN_ERROR_GPIO_LIM);
-    }
-    
-    else if (ret == (cmnd_ret + ISR_RETURN_KILLSW))
-    {
-        UARTPuts("\r\nWARNING: Controller has been terminated by SW killswitch.\r\n", -1);
-        return (RETURN_ERROR_GPIO_KILL);
-    }
-    
-    else if (ret == (cmnd_ret + ISR_RETURN_DEBUG))
-    {
-        UARTPuts("\r\nController has executed DEBUG (NULL) procedure.\r\n", -1);
-        return (RETURN_DEBUG);
-    }
-    
-    else
-    {
-        UARTPuts("\r\nwarning: execution has been terminated by unknown event", -1);
-        UARTprintf("\r\nreturn value is: %d\r\n", ret);
-        return (RETURN_ERROR_UNKNOWN);
-    }
-    
-    return 0;
-}
-
-
-
 
 
 

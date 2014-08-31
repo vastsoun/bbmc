@@ -16,18 +16,9 @@
 
 
 
-/** Internal Macros
- * 
- */
-#define DATALOG_STATIC_DATALEN          (GLOBAL_DATA_MAX)
-#define DATALOG_STATIC_DATASIZE         (6)
-
-
 /** Internal Data Types 
  * 
  */
-
-typedef double data_t;
 
 
 typedef struct
@@ -68,7 +59,7 @@ datalog_s_setup (void)
 {
     int i = 0;
     
-    for (i = 0; i < BBMC_DOF_NUM)
+    for (i = 0; i < BBMC_DOF_NUM; ++i)
     {
         /* setup the datalog dimensions */
         g_datalog[i].d_size = DATALOG_STATIC_DATASIZE;
@@ -89,7 +80,7 @@ datalog_s_init(data_t init_val)
     
     int size, len;
     
-    for (k = 0; k < BBMC_DOF_NUM)
+    for (k = 0; k < BBMC_DOF_NUM; ++k)
     {
         size = g_datalog[k].d_size;
         len  = g_datalog[k].l_size;
@@ -110,22 +101,22 @@ void
 datalog_s_write (unsigned int dev_id,
                  unsigned int index,
                  bbmc_input_encoder_t volatile *state,
-                 bbmc_output_motor_t  volatile *contrl)
+                 bbmc_contrl_motor_t  volatile *contrl)
 {
-    g_datalog[dev_id-1].log[index].data[0] = state->state.status;
-    g_datalog[dev_id-1].log[index].data[1] = state->state.count[1];
-    g_datalog[dev_id-1].log[index].data[2] = state->state.speed;
+    g_datalog[dev_id-1].log[index].data[0] = state->input.status;
+    g_datalog[dev_id-1].log[index].data[1] = state->input.count[1];
+    g_datalog[dev_id-1].log[index].data[2] = state->input.speed;
     g_datalog[dev_id-1].log[index].data[3] = contrl->state_desired.q;
     g_datalog[dev_id-1].log[index].data[4] = contrl->state_desired.q_dot;
-    g_datalog[dev_id-1].log[index].data[5] = contrl->output.value;
+    g_datalog[dev_id-1].log[index].data[5] = contrl->control.output;
 }
 
 int datalog_s_single_write (unsigned int dev_id,
                             unsigned int log_index,
                             unsigned int datum_index,
-                            data_t number)
+                            data_t value)
 {
-    g_datalog[dev_id-1].log[datum_index].data[log_index] = number;
+    g_datalog[dev_id-1].log[datum_index].data[log_index] = value;
     
     return 0;
 }
@@ -203,7 +194,7 @@ datalog_s_print(unsigned int dev_id, int range_indeces[4])
         else
         {
             UARTPutc(',');
-        }       
+        }
     }
     
     /* print the datalog data elements */

@@ -1,4 +1,4 @@
-#ifndef _MOTOR_CONTROL__H_
+#ifndef _MOTOR_CONTROL_H_
 #define _MOTOR_CONTROL_H_
 
 
@@ -129,7 +129,7 @@ int io_func_config (bbmc_io_funcs_t*   func_ptrs,
  *  
  */
 
-int qei_data_init (bbmc_input_encoder_t volatile *data, unsigned int timer);
+int qei_data_init (bbmc_input_encoder_t volatile *data);
 
 int qei_data_cpy (bbmc_input_encoder_t volatile *src,
                   bbmc_input_encoder_t volatile *dest);
@@ -183,7 +183,7 @@ int pwm_disable (unsigned int dev_id);
 
 int pwm_frequency_get (unsigned int dev_id, double *frequency);
 
-int pwm_frequency_set (unsigned int dev_id, double frequency);
+int pwm_frequency_set (unsigned int dev_id, double frequency, unsigned int resolution);
 
 int pwm_print (const char *format);
 

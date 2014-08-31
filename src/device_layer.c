@@ -35,10 +35,6 @@ dev_setup(void)
     dev_mpucache_setup(CACHE_ALL);
     UARTPuts("\tDONE", -1);
     
-    UARTPuts("\r\nConfiguring Interrupt Controller: ", -1);
-    dev_interrupts_setup();
-    UARTPuts("\tDONE", -1);
-    
     UARTPuts("\r\nConfiguring System Timers: ", -1);
     dev_timer_setup();
     UARTPuts("\t\tDONE", -1);

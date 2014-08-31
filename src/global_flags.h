@@ -7,29 +7,36 @@
 #endif
 
 
+
+/** Module Dependencies **/
+#include "device_layer.h"
+#include "isr_manager.h"
+
+
+
 /** Usage Datatypes 
  * 
  */
 
 typedef enum
 {
-    CMD_LINE    = 0,
-    DEBUG       = 1,
-    PERFLOG     = 2,
-    DATALOG     = 3,
-    EXEC_CHK    = 4,
-    CONTRL_RUN  = 5,
-    ISR_RET     = 6,
-    STOP_EMR    = 7,
-    GPOS_RESET  = 8,
+    FLG_CMDLINE     = 0,
+    FLG_DEBUG       = 1,
+    FLG_PERFLOG     = 2,
+    FLG_DATALOG     = 3,
+    FLG_EXEC_CHK    = 4,
+    FLG_CONTRL_RUN  = 5,
+    FLG_ISR_RET     = 6,
+    FLG_STOP_EMR    = 7,
+    FLG_GPOS_RESET  = 8,
     
-    ALL         = 9,
-    ISR         = 10,
-    POS_Y_RESET = 11,
-    POS_X_RESET = 12,
-    LOGS        = 13,
-    CLI         = 14,
-    CMD         = 15
+    FLG_ALL         = 9,
+    FLG_ISR         = 10,
+    FLG_POS_Y_RESET = 11,
+    FLG_POS_X_RESET = 12,
+    FLG_LOGS        = 13,
+    FLG_CLI         = 14,
+    FLG_CMD         = 15
 }
 system_flag;
 
@@ -44,11 +51,11 @@ pos_reset;
 
 typedef enum
 {
-    CLEAN  = ISR_RETURN_CLEAN,
-    KILLSW = ISR_RETURN_KILLSW,
-    POSLIM = ISR_RETURN_POSLIM,
-    ERROR  = ISR_RETURN_ERROR,
-    DEBUG  = ISR_RETURN_DEBUG
+    RET_CLEAN  = ISR_RETURN_CLEAN,
+    RET_KILLSW = ISR_RETURN_KILLSW,
+    RET_POSLIM = ISR_RETURN_POSLIM,
+    RET_ERROR  = ISR_RETURN_ERROR,
+    RET_DEBUG  = ISR_RETURN_DEBUG
 }
 isr_ret_t;
 

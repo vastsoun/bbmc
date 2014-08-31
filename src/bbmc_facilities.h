@@ -183,6 +183,12 @@ int quit (int argc, char *argv[]);
 
 
 
+/** ISR return value configurer
+ * 
+ */
+int isr_return_value(unsigned int cmnd_ret, int ret);
+
+
 
 #ifdef __cplusplus
 }

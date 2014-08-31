@@ -41,7 +41,7 @@ int timer_frequency_get (unsigned int timer, unsigned int *frequency);
 
 int timer_frequency_set (unsigned int timer, double frequency);
 
-int timer_print (const char *format);
+int timers_print (const char *format);
 
 
 

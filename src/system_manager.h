@@ -74,13 +74,6 @@ int sys_signal_gen_setup (void);
 int sys_uretts_setup (void);
 
 
-/** URETTS Controller
- * 
- */
-
-int sys_uretts_setup (void);
-
-
 /** BBMC Facility Management
  * 
  */

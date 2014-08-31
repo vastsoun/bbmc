@@ -30,6 +30,12 @@
 #define HELP_QUIT                       "\r\n-Quit-\r\n"
 
 
+//TODO (TEMP)
+
+#define HELP_EXP                       "\r\n-EXPERIMENT-\r\n"
+#define HELP_RMPI                    "\r\n-RMPI-\r\n"
+
+#define HELP_GOTO                     "\r\n-GOTO-\r\n "
 
 
 
@@ -51,27 +57,27 @@ int greeting (void);
  * 
  */
 
-int cmnd_experiment (int argc, char*argv[]);
+int cmd_experiment (int argc, char*argv[]);
 
-int cmnd_rmpi (int argc, char*argv[]);
+int cmd_rmpi (int argc, char*argv[]);
 
-int cmnd_goto (int argc, char*argv[]);
+int cmd_goto (int argc, char*argv[]);
 
-int cmnd_test (int argc, char*argv[]);
+int cmd_test (int argc, char*argv[]);
 
-int cmnd_status (int argc, char*argv[]);
+int cmd_status (int argc, char*argv[]);
 
-int cmnd_planner (int argc, char*argv[]);
+int cmd_planner (int argc, char*argv[]);
 
-int cmnd_datalog (int argc, char*argv[]);
+int cmd_datalog (int argc, char*argv[]);
 
-int cmnd_perflog (int argc, char*argv[]);
+int cmd_perflog (int argc, char*argv[]);
 
-int cmnd_config (int argc, char*argv[]);
+int cmd_config (int argc, char*argv[]);
 
-int cmnd_debug (int argc, char*argv[]);
+int cmd_debug (int argc, char*argv[]);
 
-int cmnd_quit (int argc, char*argv[]);
+int cmd_quit (int argc, char*argv[]);
 
 
 

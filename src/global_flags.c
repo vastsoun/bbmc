@@ -53,37 +53,37 @@ global_flag_get (system_flag flag)
 {
     int ret_val;
     
-    if(flag == CMD_LINE)
+    if(flag == FLG_CMDLINE)
     {
         ret_val = g_sysflags.cmdln;
     }
     
-    else if(flag == DEBUG)
+    else if(flag == FLG_DEBUG)
     {
         ret_val = g_sysflags.debug;
     }
     
-    else if(flag == DATALOG)
+    else if(flag == FLG_DATALOG)
     {
         ret_val = g_sysflags.datalog;
     }
     
-    else if(flag == PERFLOG)
+    else if(flag == FLG_PERFLOG)
     {
         ret_val = g_sysflags.perf;
     }
     
-    else if(flag == EXEC_CHK)
+    else if(flag == FLG_EXEC_CHK)
     {
         ret_val = g_sysflags.exec_checkpoint;
     }
     
-    else if(flag == CONTRL_RUN)
+    else if(flag == FLG_CONTRL_RUN)
     {
         ret_val = g_sysflags.contrl_run;
     }
     
-    else if(flag == STOP_EMR)
+    else if(flag == FLG_STOP_EMR)
     {
         ret_val = g_sysflags.stop_immediate;
     }
@@ -100,37 +100,37 @@ global_flag_get (system_flag flag)
 int 
 global_flag_set (system_flag flag)
 {
-    if(flag == CMD_LINE)
+    if(flag == FLG_CMDLINE)
     {
         g_sysflags.cmdln = 1;
     }
     
-    else if(flag == DEBUG)
+    else if(flag == FLG_DEBUG)
     {
         g_sysflags.debug = 1;
     }
     
-    else if(flag == DATALOG)
+    else if(flag == FLG_DATALOG)
     {
        g_sysflags.datalog = 1;
     }
     
-    else if(flag == PERFLOG)
+    else if(flag == FLG_PERFLOG)
     {
         g_sysflags.perf = 1;
     }
     
-    else if(flag == EXEC_CHK)
+    else if(flag == FLG_EXEC_CHK)
     {
         g_sysflags.exec_checkpoint = 1;
     }
     
-    else if(flag == CONTRL_RUN)
+    else if(flag == FLG_CONTRL_RUN)
     {
         g_sysflags.contrl_run = 1;
     }
     
-    else if(flag == STOP_EMR)
+    else if(flag == FLG_STOP_EMR)
     {
         g_sysflags.stop_immediate = 1;
     }
@@ -147,42 +147,42 @@ global_flag_set (system_flag flag)
 int 
 global_flag_clear (system_flag flag)
 {
-    if(flag == CMD_LINE)
+    if(flag == FLG_CMDLINE)
     {
         g_sysflags.cmdln = 0;
     }
     
-    else if(flag == DEBUG)
+    else if(flag == FLG_DEBUG)
     {
         g_sysflags.debug = 0;
     }
     
-    else if(flag == DATALOG)
+    else if(flag == FLG_DATALOG)
     {
        g_sysflags.datalog = 0;
     }
     
-    else if(flag == PERFLOG)
+    else if(flag == FLG_PERFLOG)
     {
         g_sysflags.perf = 0;
     }
     
-    else if(flag == EXEC_CHK)
+    else if(flag == FLG_EXEC_CHK)
     {
         g_sysflags.exec_checkpoint = 0;
     }
     
-    else if(flag == CONTRL_RUN)
+    else if(flag == FLG_CONTRL_RUN)
     {
         g_sysflags.contrl_run = 0;
     }
     
-    else if(flag == ISR_RET)
+    else if(flag == FLG_ISR_RET)
     {
         g_sysflags.isr_return = 0;
     }
     
-    else if(flag == STOP_EMR)
+    else if(flag == FLG_STOP_EMR)
     {
         g_sysflags.stop_immediate = 0;
     }
@@ -202,7 +202,7 @@ global_flags_clear  (system_flag flag)
     int i = 0;
     
     /* init appropriately */
-    if (flag == ALL)
+    if (flag == FLG_ALL)
     {
         g_sysflags.cmdln = 0;
         g_sysflags.debug = 0;
@@ -222,13 +222,13 @@ global_flags_clear  (system_flag flag)
         }
     }
     
-    else if (flag == ISR)
+    else if (flag == FLG_ISR)
     {
         g_sysflags.isr_return = 0;
         g_sysflags.stop_immediate = 0;
     }
     
-    else if (flag == POS_RESET)
+    else if (flag == FLG_GPOS_RESET)
     {
         for (i = 0; i < BBMC_DOF_NUM; i++)
         {
@@ -236,19 +236,19 @@ global_flags_clear  (system_flag flag)
         }
     }
     
-    else if (flag == LOGS)
+    else if (flag == FLG_LOGS)
     {
         g_sysflags.perf = 0;
         g_sysflags.datalog = 0;
     }
     
-    else if (flag == CLI)
+    else if (flag == FLG_CLI)
     {
         g_sysflags.cmdln = 0;
         g_sysflags.debug = 0;
     }
     
-    else if (flag == CMD)
+    else if (flag == FLG_CMD)
     {
         g_sysflags.exec_checkpoint = 0;
         g_sysflags.contrl_run = 0;
@@ -269,7 +269,7 @@ global_flags_set (system_flag flag)
     int i = 0;
     
     /* init appropriately */
-    if (flag == ALL)
+    if (flag == FLG_ALL)
     {
         g_sysflags.cmdln = 1;
         g_sysflags.debug = 1;
@@ -289,13 +289,13 @@ global_flags_set (system_flag flag)
         }
     }
     
-    else if (flag == ISR)
+    else if (flag == FLG_ISR)
     {
         g_sysflags.isr_return = 1;
         g_sysflags.stop_immediate = 1;
     }
     
-    else if (flag == POS_RESET)
+    else if (flag == FLG_GPOS_RESET)
     {
         for (i = 0; i < BBMC_DOF_NUM; i++)
         {
@@ -303,13 +303,13 @@ global_flags_set (system_flag flag)
         }
     }
     
-    else if (flag == CLI)
+    else if (flag == FLG_CLI)
     {
         g_sysflags.cmdln = 1;
         g_sysflags.debug = 1;
     }
     
-    else if (flag == CMD)
+    else if (flag == FLG_CMD)
     {
         g_sysflags.exec_checkpoint = 1;
         g_sysflags.contrl_run = 1;
@@ -374,7 +374,7 @@ isr_ret_t global_flag_isr_get (void)
 int 
 global_flags_print (const char *format)
 {
-    if (sysflags == NULL)
+    if (format == NULL)
     {
         UARTPuts("\r\nerror: global_flags_print: pointer argument is NULL", -1);
         return -1;

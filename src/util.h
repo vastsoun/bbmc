@@ -11,7 +11,7 @@
  *  
  */
 #define RX_BUFF_SIZE                    (128)
-
+#define MAX_DECIMAL_DIGITS              (6)
 
 
 /** 

@@ -1,6 +1,12 @@
 /** Module Library Header **/
 #include "motor_control.h"
 
+/** Std C Headers **/
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <float.h>
+
 
 
 /** Internal Data Types
@@ -28,11 +34,6 @@ static bbmc_io_func_tbl_t   g_func_tbl;
 int 
 io_func_setup (void)
 {
-    if (func_table == NULL)
-    {
-        return -1;
-    }
-    
     g_func_tbl.input_funcs[0] = input_qei_std;
     g_func_tbl.input_funcs[1] = input_qei_cap;
     g_func_tbl.input_funcs[2] = input_qei_dual;
@@ -113,7 +114,7 @@ io_func_config (bbmc_io_funcs_t*    func_ptrs,
 int 
 qei_data_init (bbmc_input_encoder_t volatile *data)
 {
-    if ( data == NULL)
+    if (data == NULL)
     {
         UARTPuts("\r\nerror: qei_data_init: data pointer is NULL\r\n", -1);
         return -1;
@@ -126,13 +127,13 @@ int
 qei_data_cpy (bbmc_input_encoder_t volatile *src,
               bbmc_input_encoder_t volatile *dest)
 {
-    if ( data == NULL)
+    if (src == NULL)
     {
         UARTPuts("\r\nerror: qei_data_cpy: src pointer is NULL\r\n", -1);
         return -1;
     }
     
-    if ( data == NULL)
+    if (dest == NULL)
     {
         UARTPuts("\r\nerror: qei_data_cpy: dest pointer is NULL\r\n", -1);
         return -2;
@@ -162,7 +163,7 @@ qei_capture_config (bbmc_input_encoder_t volatile *data,
     prescaler = EQEP_SYSCLK / clk_prescaler;
     prescaler = prescaler * unit_position;
     
-    data->cap_prescaler = prescalar;
+    data->input.cap_prescaler = prescaler;
     
     return dev_qei_cap_config (data->dev_id, unit_position, clk_prescaler);
 }
@@ -180,7 +181,7 @@ qei_switch_velocity (bbmc_input_encoder_t volatile *data, double switch_speed)
         return -2;
     }
     
-    data_>input.speed_thr = switch_speed;
+    data->input.speed_thr = switch_speed;
     
     return 0;
 }
@@ -230,25 +231,25 @@ qei_print (const char *format)
 int 
 input_qei_dual (bbmc_input_encoder_t volatile *data)
 {
-    eqep_read (data->dev_id, EQEP_DUAL, &(data->state));
+    eqep_read (data->dev_id, EQEP_DUAL, &(data->input));
     
-    if (data->state.speed_mode == 1)
+    if (data->input.speed_mode == 1)
     {
-        data->state.speed = data->state.speed_std;
+        data->input.speed = data->input.speed_std;
         
-        if (fabs(data->state.speed_std) <= data->state.speed_thr)
+        if (fabs(data->input.speed_std) <= data->input.speed_thr)
         {
-             data->state.speed_mode = 0;
+             data->input.speed_mode = 0;
         }
     }
     
     else
     {
-        data->state.speed = data->state.speed_cap;
+        data->input.speed = data->input.speed_cap;
         
-        if (fabs(data->state.speed_cap) > data->state.speed_thr)
+        if (fabs(data->input.speed_cap) > data->input.speed_thr)
         {
-             data->state.speed_mode = 1;
+             data->input.speed_mode = 1;
         }
     }
     
@@ -258,9 +259,9 @@ input_qei_dual (bbmc_input_encoder_t volatile *data)
 int 
 input_qei_cap (bbmc_input_encoder_t volatile *data)
 {
-    eqep_read (data->dev_id, EQEP_CAP, &(data->state));
+    eqep_read (data->dev_id, EQEP_CAP, &(data->input));
     
-    data->state.speed = data->state.speed_cap;
+    data->input.speed = data->input.speed_cap;
     
     return 0;
 }
@@ -268,9 +269,9 @@ input_qei_cap (bbmc_input_encoder_t volatile *data)
 int 
 input_qei_std (bbmc_input_encoder_t volatile *data)
 {
-    eqep_read (data->dev_id, EQEP_STD, &(data->state));
+    eqep_read (data->dev_id, EQEP_STD, &(data->input));
     
-    data->state.speed = data->state.speed_std;
+    data->input.speed = data->input.speed_std;
     
     return 0;
 }
@@ -333,13 +334,13 @@ pwm_disable (unsigned int dev_id)
 int
 pwm_frequency_get (unsigned int dev_id, double *frequency)
 {
-    return dev_pwm_frequency_get(dev_id, *frequency);
+    return dev_pwm_frequency_get(dev_id, frequency);
 }
 
 int
-pwm_frequency_set (unsigned int dev_id, double *frequency)
+pwm_frequency_set (unsigned int dev_id, double frequency, unsigned int resolution)
 {
-    return dev_pwm_frequency_set(dev_id, frequency);
+    return dev_pwm_frequency_set(dev_id, frequency, resolution);
 }
 
 int 
@@ -352,7 +353,7 @@ pwm_print (const char *format)
     
     for (i = 0; i < BBMC_DOF_NUM; i++)
     {
-        sys_pwm_frequency_get((i+1), &freq);
+        pwm_frequency_get((i+1), &freq);
         UARTprintf("\r\n%sdof-%d pwm frequncy = %d Hz", format, (i+1), (int)freq);
     }
     
@@ -369,7 +370,7 @@ pwm_print (const char *format)
 void 
 output_pwm_dif (bbmc_output_motor_t volatile *data)
 {
-    ehrpwm_write(data->dev_id, EHRPWM_WRITE_DIFF, data->value);
+    ehrpwm_write(data->dev_id, EHRPWM_WRITE_DIFF, data->output);
 }
 
 //TODO: update the GPIO to the new driver model and change this appropriately.
@@ -397,7 +398,7 @@ output_pwm_dir (bbmc_output_motor_t volatile *data)
 {
     if (data->output >= 0)
     {
-        output_gpio_dir(output->dev_id, GPIO_PIN_HIGH);
+        output_gpio_dir(data->dev_id, GPIO_PIN_HIGH);
     }
     
     if (data->output < 0)
@@ -423,10 +424,10 @@ void
 output_motor_1D (bbmc_contrl_motor_t volatile *data)
 {
     #ifdef OUTPUT_PWM_DIFF
-        output_pwm_dif(data->control);
+        output_pwm_dif(&data->control);
     #endif
     #ifdef OUTPUT_PWM_DIR
-        output_pwm_dir(data->control);
+        output_pwm_dir(&data->control);
     #endif
 }
 

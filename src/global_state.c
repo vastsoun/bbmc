@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
-#include <string.h>
 #include <math.h>
 #include <float.h>
 
@@ -13,6 +12,7 @@
 #include "uartStdio.h"
 
 /** BBMC Headers **/
+#include "uretts_model.h"
 #include "util.h"
 
 
@@ -38,12 +38,6 @@ static bbmc_actuator_range_t            g_position_home[BBMC_DOF_NUM];
 int 
 global_state_init (void)
 {
-    if (dev_id > BBMC_DOF_NUM)
-    {
-        UARTPuts("error: global_state_read: dev_id is invalid\r\n", -1);
-        return -1;
-    }
-    
     qei_data_init (&g_state[0]);
     qei_data_init (&g_state[1]);
     
@@ -66,7 +60,7 @@ global_state_init (void)
 }
 
 int 
-global_state_read (bbmc_actuator_state_t *local_state)
+global_state_read (bbmc_actuator_state_t volatile *local_state)
 {
     if (local_state == NULL)
     {
@@ -84,7 +78,7 @@ global_state_read (bbmc_actuator_state_t *local_state)
 }
 
 int 
-global_state_write (bbmc_actuator_state_t *local_state)
+global_state_write (bbmc_actuator_state_t volatile *local_state)
 {
     if (local_state == NULL)
     {
@@ -92,7 +86,7 @@ global_state_write (bbmc_actuator_state_t *local_state)
         return -1;
     }
     
-    if (local_sate->dev_id > BBMC_DOF_NUM)
+    if (local_state->dev_id > BBMC_DOF_NUM)
     {
         UARTPuts("error: global_state_write: argument 1: dev_id is invalid\r\n", -1);
         return -2;
@@ -140,12 +134,6 @@ global_position_get (unsigned int dev_id)
         return -1;
     }
     
-    if ( (position > g_position_limits[dev_id-1].max) || (position < g_position_limits[dev_id-1].min) )
-    {
-        UARTPuts("error: global_position_set: position is out of bounds\r\n", -1);
-        return -2;
-    }
-    
     input_encoder_1D(&g_state[dev_id-1]);
     
     return 0;
@@ -178,7 +166,7 @@ global_sampling_frequency_set (unsigned int dev_id, unsigned int frequency)
         return -1;
     }
     
-    return qei_frequency_set (g_state[dev_id-1], frequency);
+    return qei_frequency_set (&g_state[dev_id-1], frequency);
 }
 
 int 
@@ -300,7 +288,7 @@ global_inits_get (unsigned int dev_id, bbmc_actuator_range_t *local_inits)
         UARTPuts("error: global_inits_get: argument 1: dev_id is invalid\r\n", -1);
     }
     
-    if (local_limits == NULL)
+    if (local_inits == NULL)
     {
         UARTPuts("error: global_inits_get: argument 2: pointer is NULL\r\n", -1);
         return -1;
@@ -320,7 +308,7 @@ global_inits_set (unsigned int dev_id, bbmc_actuator_range_t *local_inits)
         UARTPuts("error: global_inits_set: argument 1: dev_id is invalid\r\n", -1);
     }
     
-    if (local_limits == NULL)
+    if (local_inits == NULL)
     {
         UARTPuts("error: global_inits_set: argument 2: pointer is NULL\r\n", -1);
         return -1;
@@ -378,8 +366,8 @@ global_home_set (unsigned int dev_id, bbmc_actuator_range_t *local_home)
         return -1;
     }
     
-    g_position_limits[dev_id-1].min = local_limits->min;
-    g_position_limits[dev_id-1].max = local_limits->max;
+    g_position_home[dev_id-1].min = local_home->min;
+    g_position_home[dev_id-1].max = local_home->max;
     
     return 0;
 }

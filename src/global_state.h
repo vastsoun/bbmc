@@ -30,9 +30,9 @@ typedef  bbmc_motor_range_t     bbmc_actuator_range_t;
 
 int global_state_init  (void);
 
-int global_state_read  (bbmc_actuator_state_t *local_state);
+int global_state_read  (bbmc_actuator_state_t volatile *local_state);
 
-int global_state_write (bbmc_actuator_state_t *local_state);
+int global_state_write (bbmc_actuator_state_t volatile *local_state);
 
 int global_position_init (unsigned int dev_id, pos_reset value);
 

@@ -5,13 +5,15 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
+#include <math.h>
+#include <float.h>
 
 /** Firmware Headers **/
 #include "uartStdio.h"
 
 /** BBMC Headers **/
 #include "device_layer.h"
-#include "timers_manager.h"
+#include "system_timers.h"
 #include "isr_manager.h"
 #include "safety_ss.h"
 
@@ -62,9 +64,9 @@ static void _gpio_hall_check (void)
             (global_flags_gpreset_get(1) == MIN))
         {
             global_flags_gpreset_set(1, MAX);
-            global_flag_set(STOP_EMR);
+            global_flag_set(FLG_STOP_EMR);
             
-            if (global_flag_get(DEBUG) == 1)
+            if (global_flag_get(FLG_DEBUG) == 1)
             {
                 UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: minpos y\r\n", -1);
             }
@@ -74,9 +76,9 @@ static void _gpio_hall_check (void)
             (global_flags_gpreset_get(1) == MAX))
         {
             global_flags_gpreset_set(1, MIN);
-            global_flag_set(STOP_EMR);
+            global_flag_set(FLG_STOP_EMR);
             
-            if (global_flag_get(DEBUG) == 1)
+            if (global_flag_get(FLG_DEBUG) == 1)
             {
                 UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: maxpos y\r\n", -1);
             }
@@ -96,9 +98,9 @@ static void _gpio_hall_check (void)
             (global_flags_gpreset_get(2) == MIN))
         {
             global_flags_gpreset_set(2, MAX);
-            global_flag_set(STOP_EMR);
+            global_flag_set(FLG_STOP_EMR);
             
-            if (global_flag_get(DEBUG) == 1)
+            if (global_flag_get(FLG_DEBUG) == 1)
             {
                 UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: minpos x\r\n", -1);
             }
@@ -108,9 +110,9 @@ static void _gpio_hall_check (void)
             (global_flags_gpreset_get(2) == MAX))
         {
             global_flags_gpreset_set(2, MIN);
-            global_flag_set(STOP_EMR);
+            global_flag_set(FLG_STOP_EMR);
             
-            if (global_flag_get(DEBUG) == 1)
+            if (global_flag_get(FLG_DEBUG) == 1)
             {
                 UARTPuts("\r\nDEBUG_MSG: GPIO INTERRUPT: maxpos x\r\n", -1);
             }
@@ -188,9 +190,9 @@ isr_gpio_poslim(void)
     _gpio_hall_check();
     
     
-    if (global_flag_get(STOP_EMR) == 1)
+    if (global_flag_get(FLG_STOP_EMR) == 1)
     {
-        global_flag_isr_set(POSLIM);
+        global_flag_isr_set(RET_POSLIM);
         
         counter= 0;
         systick_state.ticks = 0;
@@ -215,8 +217,8 @@ isr_gpio_poslim(void)
                 
                 if (counter >= MAX_STOP_COUNT)
                 {
-                    stop_controller[0].output.value = 0;
-                    stop_controller[1].output.value = 0;
+                    stop_controller[0].control.output = 0;
+                    stop_controller[1].control.output = 0;
                     
                     isr_state_set (TERM_FLAG, 1);
                     break;
@@ -266,8 +268,8 @@ isr_gpio_killswitch(void)
     if ((GPIOPinIntStatus(KILLSWITCH_GPIO_ADDRESS, KILLSWITCH_GPIO_INT_LINE, 
             KILLSWITCH_GPIO_PIN) >> KILLSWITCH_GPIO_PIN))
     {
-        global_flag_set(STOP_EMR);
-        global_flag_isr_set(KILLSW);
+        global_flag_set(FLG_STOP_EMR);
+        global_flag_isr_set(RET_KILLSW);
         
         counter= 0;
         systick_state.ticks = 0;
@@ -291,8 +293,8 @@ isr_gpio_killswitch(void)
                 
                 if (counter >= MAX_STOP_COUNT)
                 {
-                    stop_controller[0].output.value = 0;
-                    stop_controller[1].output.value = 0;
+                    stop_controller[0].control.output = 0;
+                    stop_controller[1].control.output = 0;
                     
                     isr_state_set (TERM_FLAG, 1);
                     break;
@@ -331,7 +333,7 @@ isr_gpio_killswitch(void)
         
         UARTPuts("\r\nWARNING: Killswitch has enacted Emergency Stop\r\n", -1);
         
-        if (global_flag_get(DEBUG) == 1)
+        if (global_flag_get(FLG_DEBUG) == 1)
         {
             UARTPuts("DEBUG_MSG: Killswitch Engage!!\r\n", -1);
         }

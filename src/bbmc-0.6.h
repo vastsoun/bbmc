@@ -24,7 +24,7 @@ extern "C" {
 #include "isr_manager.h"
 #include "system_timers.h"
 #include "safety_ss.h"
-#include "motion_control.h"
+#include "motor_control.h"
 
 #include "global_flags.h"
 #include "global_state.h"
@@ -33,6 +33,8 @@ extern "C" {
 
 //#include "uretts_model.h"
 //#include "uretts_control.h"
+
+#include "system_manager.h"
 
 #include "bbmc_facilities.h"
 //#include "goto.h"

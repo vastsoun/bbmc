@@ -6,18 +6,18 @@
     extern "C" {
 #endif
 
-/* Primary Hardware headers */
+/** Primary Hardware headers **/
 #include "soc_AM335x.h"
 #include "beaglebone.h"
 #include "pin_mux.h"
 #include "interrupt.h"
 #include "cache.h"
 
-/* Device headers */
+/** Device headers **/
 #include "hw_ehrpwm.h"
 #include "hw_eqep.h"
 
-/* Drivers */
+/** Drivers **/
 #include "uartStdio.h"
 #include "dmtimer.h"
 #include "pwmss.h"
@@ -25,6 +25,8 @@
 #include "eqep.h"
 #include "gpio_v2.h"
 
+/** Utilities **/
+#include "perf.h"
 
 
 /** BBMC HARDWARE MACROS
@@ -216,7 +218,7 @@ unsigned int dev_gpio_killswitch_get (void);
 /** Interrupt Controller configuratinos 
  *  
  */
-int dev_intc_setup (void);
+int dev_intc_setup (isr_fp_t *isr_funcs);
 
 int dev_intc_master_disable (void);
 

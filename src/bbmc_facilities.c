@@ -2,22 +2,23 @@
 #include "bbmc_facilities.h"
 
 /** Std C Headers **/
+#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
-#include <string.h>
 #include <math.h>
 
 /** Firmware Headers **/
 #include "uartStdio.h"
+#include "cmdline.h"
 
 /** BBMC Headers **/
 #include "device_layer.h"
-#include "timers_manager.h"
+#include "system_timers.h"
 #include "isr_manager.h"
 #include "safety_ss.h"
 
-#include "motion_control.h"
+#include "motor_control.h"
 #include "global_state.h"
 #include "global_flags.h"
 
@@ -182,6 +183,7 @@ datalog (int argc, char *argv[])
         int dl_ret;
         int print_range[4] = {0};
         cmd_args_t args;
+        unsigned int count;
         
         dl_ret = datalog_args(argc, argv, &args);
         
@@ -234,14 +236,14 @@ datalog (int argc, char *argv[])
         
         else if (!strcmp((const char *)argv[1],"enable"))
         {
-            global_flag_set (DATALOG);
+            global_flag_set (FLG_DATALOG);
             UARTPuts("\r\nDatalog has been enabled.\r\n", -1);
             return (RETURN_DATALOG + RETURN_DATALOG_ENABLE);
         }
         
         else if (!strcmp((const char *)argv[1],"disable"))
         {
-            global_flag_clear (DATALOG);
+            global_flag_clear (FLG_DATALOG);
             UARTPuts("\r\nDatalog has been disabled.\r\n", -1);
             return (RETURN_DATALOG + RETURN_DATALOG_DISABLE);
         }
@@ -335,20 +337,22 @@ perflog (int argc, char *argv[])
         
         if (!strcmp((const char *)argv[1],"print"))
         {
-            performance_log_print ();
+            unsigned int count = isr_state_get (TERM_COUNT);
+            
+            performance_log_print (count);
             return (RETURN_PERF + RETURN_PERF_PRINT);
         }
         
         if (!strcmp((const char *)argv[1],"enable"))
         {
-            global_flag_set (DATALOG);
+            global_flag_set (FLG_DATALOG);
             UARTPuts("\r\nperflog_measure mode: on\r\n", -1);
             return (RETURN_PERF + RETURN_PERF_ENABLE);
         }
         
         if (!strcmp((const char *)argv[1],"disable"))
         {
-            global_flag_clear (DATALOG);
+            global_flag_clear (FLG_DATALOG);
             UARTPuts("\r\nperflog_measure mode: off\r\n", -1);
             return (RETURN_PERF + RETURN_PERF_DISABLE);
         }
@@ -405,11 +409,11 @@ config (int argc, char *argv[])
             {
                 config_gstate (&args);
                 UARTPuts("\r\nGlobal State has been reset.\r\n", -1);
-                return (RETURN_RESET + RETURN_CONFIG_GSTATE);
+                return (RETURN_CONFIG + RETURN_CONFIG_GSTATE);
             }
             
             UARTPuts("\r\nGlobal State reset has been aborted.\r\n", -1);
-            return (RETURN_RESET + RETURN_CONFIG_GSTATE);
+            return (RETURN_CONFIG + RETURN_CONFIG_GSTATE);
         }
         
         else if (!strcmp((const char *)argv[1],"poscalib"))
@@ -505,13 +509,13 @@ debug (int argc, char *argv[])
     {
         if (!strcmp((const char *)argv[1],"enable"))
         {
-            global_flags_set(DEBUG);
+            global_flags_set(FLG_DEBUG);
             UARTPuts("\r\ndebug mode: on\r\n", -1);
             return (RETURN_DEBUG + RETURN_DEBUG_ENABLE);
         }
         if (!strcmp((const char *)argv[1],"disable"))
         {
-            global_flags_clear(DEBUG);
+            global_flags_clear(FLG_DEBUG);
             UARTPuts("\r\ndebug mode: off\r\n", -1);
             return (RETURN_DEBUG + RETURN_DEBUG_DISABLE) ;
         }
@@ -532,9 +536,53 @@ quit (int argc, char *argv[])
 {
     // TODO: either add shutdown functionality here or after primary while() loop. 
     
-    global_flags_set(CMD_LINE);
+    global_flags_set(FLG_CMDLINE);
     
     return (RETURN_QUIT);
+}
+
+
+
+
+/** ISR return value tester
+ * 
+ */
+
+int 
+isr_return_value(unsigned int cmnd_ret, int ret)
+{
+    if (ret == (cmnd_ret + ISR_RETURN_CLEAN))
+    {
+        UARTPuts("\r\nController has executed succesfully.\r\n", -1);
+        return (RETURN_SUCCESS);
+    }
+    
+    else if (ret == (cmnd_ret + ISR_RETURN_POSLIM))
+    {
+        UARTPuts("\r\nWARNING: Controller has been terminated by position limit.\r\n", -1);
+        return (RETURN_ERROR_GPIO_LIM);
+    }
+    
+    else if (ret == (cmnd_ret + ISR_RETURN_KILLSW))
+    {
+        UARTPuts("\r\nWARNING: Controller has been terminated by SW killswitch.\r\n", -1);
+        return (RETURN_ERROR_GPIO_KILL);
+    }
+    
+    else if (ret == (cmnd_ret + ISR_RETURN_DEBUG))
+    {
+        UARTPuts("\r\nController has executed DEBUG (NULL) procedure.\r\n", -1);
+        return (RETURN_DEBUG);
+    }
+    
+    else
+    {
+        UARTPuts("\r\nwarning: execution has been terminated by unknown event", -1);
+        UARTprintf("\r\nreturn value is: %d\r\n", ret);
+        return (RETURN_ERROR_UNKNOWN);
+    }
+    
+    return 0;
 }
 
 
