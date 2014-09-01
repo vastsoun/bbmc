@@ -126,19 +126,19 @@ timers_print (const char *format)
 {
     UARTprintf("\r\n%sControl Timer Configurations: \r\n", format);
     
-    unsigned int freq;
+    unsigned int freq = 0;
     
-    timer_frequency_get(TIMER_EXP, &freq);
-    UARTprintf("\r\n%stimer::run  := %d Hz", format, freq);
+    timer_frequency_get(TIMER_EXP_ID, &freq);
+    UARTprintf("\r\n%stimer::run  := %d Hz", format, (int)freq);
     
-    timer_frequency_get(TIMER_GOTO, &freq);
-    UARTprintf("\r\n%stimer::goto := %d Hz", format, freq);
+    timer_frequency_get(TIMER_GOTO_ID, &freq);
+    UARTprintf("\r\n%stimer::goto := %d Hz", format, (int)freq);
     
-    timer_frequency_get(TIMER_RMPI, &freq);
-    UARTprintf("\r\n%stimer::rmpi := %d Hz", format, freq);
+    timer_frequency_get(TIMER_RMPI_ID, &freq);
+    UARTprintf("\r\n%stimer::rmpi := %d Hz", format, (int)freq);
     
-    timer_frequency_get(TIMER_STOP, &freq);
-    UARTprintf("\r\n%stimer::stop := %d Hz", format, freq);
+    timer_frequency_get(TIMER_STOP_ID, &freq);
+    UARTprintf("\r\n%stimer::stop := %d Hz", format, (int)freq);
     
     CmdLineNewline(2);
     

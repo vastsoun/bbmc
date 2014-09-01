@@ -22,6 +22,11 @@
 #define TIMER_RMPI                      (TIMER_3)
 #define TIMER_STOP                      (TIMER_4)
 
+#define TIMER_EXP_ID                    2
+#define TIMER_GOTO_ID                   3
+#define TIMER_RMPI_ID                   4
+#define TIMER_STOP_ID                   5
+
 #define DMTIMER_EXP                     (DMTIMER_1)
 #define DMTIMER_GOTO                    (DMTIMER_2)
 #define DMTIMER_RMPI                    (DMTIMER_3)

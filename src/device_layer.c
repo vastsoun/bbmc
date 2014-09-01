@@ -221,31 +221,31 @@ dev_qei_frequency_set (dev_input_qei_t volatile *state, unsigned int frequency)
 int 
 dev_timer_setup (void)
 {
-    dmtimer_handle_init(2, &bbmc_timers[0]);
-    dmtimer_handle_init(3, &bbmc_timers[1]);
-    dmtimer_handle_init(4, &bbmc_timers[2]);
-    dmtimer_handle_init(5, &bbmc_timers[3]);
+    dmtimer_handle_init(TIMER_1_ID, &bbmc_timers[0]);
+    dmtimer_handle_init(TIMER_2_ID, &bbmc_timers[1]);
+    dmtimer_handle_init(TIMER_3_ID, &bbmc_timers[2]);
+    dmtimer_handle_init(TIMER_4_ID, &bbmc_timers[3]);
     
-    dmtimer_open(2);
-    dmtimer_open(3);
-    dmtimer_open(4);
-    dmtimer_open(5);
+    dmtimer_open(TIMER_1_ID);
+    dmtimer_open(TIMER_2_ID);
+    dmtimer_open(TIMER_3_ID);
+    dmtimer_open(TIMER_4_ID);
     
-    dmtimer_init(2);
-    dmtimer_init(3);
-    dmtimer_init(4);
-    dmtimer_init(5);
+    dmtimer_init(TIMER_1_ID);
+    dmtimer_init(TIMER_2_ID);
+    dmtimer_init(TIMER_3_ID);
+    dmtimer_init(TIMER_4_ID);
     
     return 0;
 }
 
 int 
-dev_timer_frequency_get (unsigned int timer, unsigned int *frequency)
+dev_timer_frequency_get (unsigned int timer_id, unsigned int *frequency)
 {
-    if ((timer != TIMER_1) || 
-        (timer != TIMER_2) ||
-        (timer != TIMER_3) ||
-        (timer != TIMER_4) )
+    if ((timer_id != TIMER_1_ID) && 
+        (timer_id != TIMER_2_ID) &&
+        (timer_id != TIMER_3_ID) &&
+        (timer_id != TIMER_4_ID) )
     {
         return -1;
     }
@@ -253,7 +253,7 @@ dev_timer_frequency_get (unsigned int timer, unsigned int *frequency)
     unsigned int temp;
     int freq;
     
-    temp = dmtimer_tldr_config_get(timer);
+    temp = dmtimer_tldr_config_get(timer_id);
     temp = DMTIMER_COUNT_MAX - temp;
     
     freq = DMTIMER_SYSTEM_CLK_DEFAULT / temp;
@@ -264,17 +264,17 @@ dev_timer_frequency_get (unsigned int timer, unsigned int *frequency)
 }
 
 int 
-dev_timer_frequency_set (unsigned int timer, unsigned int count)
+dev_timer_frequency_set (unsigned int timer_id, unsigned int count)
 {
-    if ((timer != TIMER_1) || 
-        (timer != TIMER_2) ||
-        (timer != TIMER_3) ||
-        (timer != TIMER_4) )
+    if ((timer_id != TIMER_1_ID) || 
+        (timer_id != TIMER_2_ID) ||
+        (timer_id != TIMER_3_ID) ||
+        (timer_id != TIMER_4_ID) )
     {
         return -1;
     }
     
-    return dmtimer_tldr_config_set(timer, count);
+    return dmtimer_tldr_config_set(timer_id, count);
 }
 
 int

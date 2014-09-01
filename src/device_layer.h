@@ -176,9 +176,9 @@ int dev_qei_frequency_set (dev_input_qei_t volatile *data,
  */
 int dev_timer_setup (void);
 
-int dev_timer_frequency_get (unsigned int timer, unsigned int *frequency);
+int dev_timer_frequency_get (unsigned int timer_id, unsigned int *frequency);
 
-int dev_timer_frequency_set (unsigned int timer, unsigned int count);
+int dev_timer_frequency_set (unsigned int timer_id, unsigned int count);
 
 int dev_timer_1_enable  (void);
 
