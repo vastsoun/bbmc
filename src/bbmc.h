@@ -1,7 +1,7 @@
 /**
- * \file   bbmc-0.6.h
+ * \file   bbmc.h
  *
- * \brief  the bbmc-0.6.x application header
+ * \brief  the bbmc.x application header
  */
  
 
