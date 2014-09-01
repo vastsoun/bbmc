@@ -32,7 +32,7 @@ DIRS=${DRIVERS_BLD} ${PLATFORM_BLD} ${SYSCONFIG_BLD} ${UTILITY_BLD}
 #
 # The application name
 #
-APPNAME=bbmc-0.6
+APPNAME=bbmc
 
 #
 # Where the application will be loaded to. This is required to generate
