@@ -2,7 +2,7 @@
 
 
 /** BBMC Headers **/
-#include "bbmc-0.6.h"
+#include "bbmc.h"
 
 
 
