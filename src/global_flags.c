@@ -328,7 +328,7 @@ global_flags_set (system_flag flag)
 int
 global_flags_gpreset_set (int dev_id, pos_reset value)
 {
-    if (dev_id >= BBMC_DOF_NUM)
+    if (dev_id > BBMC_DOF_NUM)
     {
         UARTPuts("error: global_flags_gpreset_set: dev_id argument is invalid\r\n", -1);
         return -1;
@@ -348,7 +348,7 @@ global_flags_gpreset_set (int dev_id, pos_reset value)
 pos_reset
 global_flags_gpreset_get (int dev_id)
 {
-    if (dev_id >= BBMC_DOF_NUM)
+    if (dev_id > BBMC_DOF_NUM)
     {
         UARTPuts("error: global_flags_gpreset_get: dev_id argument is invalid\r\n", -1);
         return -1;

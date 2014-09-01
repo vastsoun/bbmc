@@ -85,8 +85,19 @@ int command_line (void)
     
     for (;;)
     {
+        /** Get and execute the input CLI command **/
+        cmd_ret = UARTPuts("\r\nbbmc:~$ ", -1);
+        UARTGets(cmd_rx_buff, RX_BUFF_SIZE);
+        cmd_ret = CmdLineProcess(cmd_rx_buff, g_cmd_table);
+        
         cmd_flag = global_flag_get(FLG_CMDLINE);
         debug_flag = global_flag_get(FLG_DEBUG);
+        
+        /** Debug verbatim **/
+        if (debug_flag == 1)
+        {
+            UARTprintf("\r\nDEBUG: %d\r\n", cmd_ret);
+        }
         
         if (cmd_flag == 0)
         {
@@ -96,17 +107,6 @@ int command_line (void)
         if (cmd_flag == 1)
         {
             break;
-        }
-        
-        /** Get and execute the input CLI command **/
-        cmd_ret = UARTPuts("\r\nbbmc:~$ ", -1);
-        UARTGets(cmd_rx_buff, RX_BUFF_SIZE);
-        cmd_ret = CmdLineProcess(cmd_rx_buff, g_cmd_table);
-        
-        /** Debug verbatim **/
-        if (debug_flag == 1)
-        {
-            UARTprintf("\r\nDEBUG: %d\r\n", cmd_ret);
         }
     }
     

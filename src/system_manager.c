@@ -119,6 +119,8 @@ sys_gstate_setup (void)
 {
     global_presets_setup ();
     
+    global_state_setup ();
+    
     global_state_init ();
     
     return 0;

@@ -475,7 +475,7 @@ config_gstate_args (int argc, char *argv[], cmd_args_t *args)
 int 
 config_gstate (cmd_args_t *args)
 {
-    //TODO
+    UARTPuts("\r\ni promise i will do this soon!..\r\n", -1);
     
     return 0;
 }

@@ -36,6 +36,15 @@ static bbmc_actuator_range_t            g_position_home[BBMC_DOF_NUM];
  */
 
 int 
+global_state_setup (void)
+{
+    g_state[0].dev_id = 1;
+    g_state[1].dev_id = 2;
+    
+    return 0;
+}
+
+int 
 global_state_init (void)
 {
     qei_data_init (&g_state[0]);
@@ -50,11 +59,8 @@ global_state_init (void)
     qei_switch_velocity (&g_state[0], SPEED_MODE_THRESHOLD_Y);
     qei_switch_velocity (&g_state[1], SPEED_MODE_THRESHOLD_X);
     
-    global_position_get (1);
-    global_position_get (2);
-    
     global_position_set(1, g_position_home[0].min);
-    global_position_set(1, g_position_home[1].min);
+    global_position_set(2, g_position_home[1].min);
     
     return 0;
 }

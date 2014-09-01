@@ -24,7 +24,7 @@ dev_setup(void)
 {
     
     dev_stdio_setup();
-    UARTprintf("\033[2J\033[1;1HBBMC-v0.5 is now initializing...\r\n");
+    UARTprintf("\033[2J\033[1;1HBBMC is now initializing...\r\n");
     UARTPuts("\r\nUART_0 stdio channel has opened.", -1);
     
     UARTPuts("\r\nInitializing Peripheral Drivers: ", -1);
@@ -199,13 +199,16 @@ dev_qei_cap_config (unsigned int dev_id,
 
 int dev_qei_count_set  (dev_input_qei_t volatile *state, unsigned int count)
 {
+    state->input.count[0] = count;
+    state->input.count[1] = count;
+    
     return eqep_write (state->dev_id, count);
 }
 
 int 
-dev_qei_frequency_set (dev_input_qei_t volatile *data, unsigned int frequency)
+dev_qei_frequency_set (dev_input_qei_t volatile *state, unsigned int frequency)
 {
-    data->input.sampling_freq = frequency;
+    state->input.sampling_freq = frequency;
     
     return 0;
 }

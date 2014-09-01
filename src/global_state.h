@@ -28,6 +28,8 @@ typedef  bbmc_motor_range_t     bbmc_actuator_range_t;
  * 
  */
 
+int global_state_setup (void);
+
 int global_state_init  (void);
 
 int global_state_read  (bbmc_actuator_state_t volatile *local_state);
