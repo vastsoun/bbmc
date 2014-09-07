@@ -3,3 +3,6 @@ build/Debug
 build/bin
 
 *.geany
+*.o
+*.out
+*.map

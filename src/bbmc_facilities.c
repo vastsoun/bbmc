@@ -509,13 +509,13 @@ debug (int argc, char *argv[])
     {
         if (!strcmp((const char *)argv[1],"enable"))
         {
-            global_flags_set(FLG_DEBUG);
+            global_flag_set(FLG_DEBUG);
             UARTPuts("\r\ndebug mode: on\r\n", -1);
             return (RETURN_DEBUG + RETURN_DEBUG_ENABLE);
         }
         if (!strcmp((const char *)argv[1],"disable"))
         {
-            global_flags_clear(FLG_DEBUG);
+            global_flag_clear(FLG_DEBUG);
             UARTPuts("\r\ndebug mode: off\r\n", -1);
             return (RETURN_DEBUG + RETURN_DEBUG_DISABLE) ;
         }

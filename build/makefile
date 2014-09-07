@@ -1,7 +1,14 @@
 #
+# Configure the Shell environment
+#
+SHELL=/bin/bash
+
+
+#
 # Locating the root directories
 #
-STARTERWARE_ROOT=../../bbmc-dev
+
+STARTERWARE_ROOT=../../bbmc-starterware
 BBMC_ROOT=..
 
 # Project Directories
@@ -23,6 +30,7 @@ DEVICE=am335x
 #
 ROOT=$(STARTERWARE_ROOT)
 include makedefs
+
 
 #
 # Target Directories that need to be built
@@ -116,6 +124,8 @@ compile:
 	@echo -e "${ECHO_Blue}..Compiling Completed.${ECHO_NC}\n";
 
 link:
+	@echo -e "\n LIB_C is: ${LIB_C}";
+	@echo -e "\n LIB_GCC is: ${LIB_GCC}";
 	@echo -e "\n${ECHO_Blue}Linking objects with static libraries..${ECHO_NC}";
 	$(LD) ${LDFLAGS} ${LPATH} -o $(TARGET_MODE)/$(APPNAME).out -Map $(TARGET_MODE)/$(APPNAME).map \
 	$(TARGET_MODE)/*.o* -T $(APPNAME).lds $(APP_LIB) -lc -lm -lgcc $(APP_LIB) -lc -lm -lgcc 
