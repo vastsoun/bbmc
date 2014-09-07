@@ -536,6 +536,7 @@ quit (int argc, char *argv[])
 {
     // TODO: either add shutdown functionality here or after primary while() loop. 
     
+    
     global_flag_set(FLG_CMDLINE);
     
     return (RETURN_QUIT);
