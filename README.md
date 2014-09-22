@@ -1,4 +1,4 @@
-bbmc - BeagleBone Motor Control
+bbmc - BeagleBone Motion Controller
 ====
 
 Author: Vassilios Tsounis, Diploma Student at NTUA/CSL-EP
