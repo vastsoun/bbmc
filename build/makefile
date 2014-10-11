@@ -93,6 +93,7 @@ debug:
 	make TARGET_MODE=Debug link
 	make TARGET_MODE=Debug bincpy
 	make TARGET_MODE=Debug ti_header
+	@rm Debug/*.o
 
 release:
 	make TARGET_MODE=release lib
