@@ -12,6 +12,20 @@ the National Technical University of Athens (NTUA):
 
 http://csl-ep.mech.ntua.gr/
 
+Instructions
+==
+This is v6.1 of the BBMC software stack. In order to build and run this, the bbmc-starterware package is also needed as it provides the basic device drivers and firmware for executing bare-metal code on the BeagleBone.
+
+The other repo is available at:
+
+https://github.com/vastsoun/bbmc-starterware
+
+
+Steps:
+
+TODO
+
+
 
 Disclamer
 ==
