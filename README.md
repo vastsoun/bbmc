@@ -6,11 +6,8 @@ Author: Vassilios Tsounis, Diploma Student at NTUA/CSL-EP
 
 Description
 ==
-This repo maintains the code used in my diploma thesis, conducted at the 
-Control Systems Laboratory, Evangelos Papadopoulos Group (CSL-EP), at 
-the National Technical University of Athens (NTUA):
+This repo maintains the source code for the firmware of the URETTS system. This is part of a [Diploma Thesis](https://scholar.google.gr/citations?view_op=view_citation&hl=en&user=-N0pnFQAAAAJ&citation_for_view=-N0pnFQAAAAJ:u-x6o8ySG0sC) conducted at the Control Systems Laboratory, Evangelos Papadopoulos Group [CSL-EP](http://csl-ep.mech.ntua.gr), at the National Technical University of Athens (NTUA). 
 
-http://csl-ep.mech.ntua.gr/
 
 Instructions
 ==
